@@ -1,7 +1,7 @@
 # Machine Setup for Hyperledger-Fabric
 
 ### - Linux
-There are some prerequisites that must be satisfied in order to be able to develop Blockchain applications on the Hyperledger Fabric.
+There are some prerequisites that must be satisfied in order to be able to develop Blockchain applications on Hyperledger Fabric.
 So, there are two scripts to do this setup.
 You should run the first one:
 ```
