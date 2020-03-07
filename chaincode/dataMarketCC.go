@@ -1,11 +1,11 @@
 package main
 
 import (
-        "encoding/json"
-        "fmt"
+	"encoding/json"
+	"fmt"
 	"time"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
-        "github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
 // SmartContract provides functions for managing a market
