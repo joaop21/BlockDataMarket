@@ -8,5 +8,5 @@ There are some assumptions that we made when running this script:
 
 You should run this command in order to run the script and also to export the file variables into session variables:
 ```
-source ./deploy-chaincode.sh
+source ./deploy-chaincode.sh [Flags]
 ```
