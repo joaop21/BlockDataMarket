@@ -1,4 +1,4 @@
-# Deploy Chaincode into the Network
+# Deploy and Start Chaincode into the Network
 
 There are some assumptions that we made when running this script:
   - The fabric-samples folder exists and is in BlockDataMarket/fabric-samples/ ;
@@ -10,3 +10,5 @@ You should run this command in order to run the script and also to export the fi
 ```
 source ./deploy-chaincode.sh [Flags]
 ```
+
+ATTENTION: this script initializes the chaincode with InitLedger function.
