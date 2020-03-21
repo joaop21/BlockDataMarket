@@ -3,19 +3,19 @@ package main
 type Category uint
 
 const (
-    Mobile Category = iota + 1
+    Mobile Category = iota
     Energy
 )
 
 func (category Category) String() string {
     names := []string{
         "Mobile",
-        "Energy"
+        "Energy",
     }
 
-    if category < Mobile || day > Energy {
+    if category < Mobile || category > Energy {
         return "Unknown"
     }
 
-    return names[day]
+    return names[category]
 }

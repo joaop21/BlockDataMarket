@@ -1,16 +1,19 @@
 package main
 
 import (
-    "fmt"
-    "encoding/json"
+	"encoding/json"
+	"fmt"
+	"time"
 )
 
+// Announcement object that represents an announcement in the World State
 type Announcement struct {
-    AnnouncementId string   `json:"announcementId"`
-    DataId         string   `json:"dataId"`
-    OwnerId        string   `json:"ownerId"`
-    Value          float32  `json:"value"`
-    DataCategory   Category `json:"value"`
+    AnnouncementId string    `json:"announcementId"`
+    DataId         string    `json:"dataId"`
+    OwnerId        string    `json:"ownerId"`
+    Value          float32   `json:"value"`
+    DataCategory   Category  `json:"value"`
+    InsertedAt     time.Time `json:"insertedAt"`
 }
 
 // Serialize formats the Announcement as JSON bytes
