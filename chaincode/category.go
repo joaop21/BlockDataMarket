@@ -14,7 +14,7 @@ func (category Category) String() string {
     }
 
     if category < Mobile || day > Energy {
-      return "Unknown"
+        return "Unknown"
     }
 
     return names[day]
