@@ -15,7 +15,7 @@ func (_ *AnnouncementContract) Instantiate(_ contractapi.TransactionContextInter
     return nil
 }
 
-// AnnounceData adds a new data record to be sell to the world state with given details
+// Adds a new Announcement to be sell, to the world state with given details
 func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface,
     dataId string, ownerId string, value float32, category Category) error {
 
@@ -36,4 +36,32 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
     })
 
     return ctx.GetStub().PutState(key, announcementAsBytes)
+}
+
+// Get all existing Announcements on world state
+func (_ *AnnouncementContract) GetAnnoucements(ctx contractapi.TransactionContextInterface) ([]Announcement, error) {
+    resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{})
+    if err != nil {
+        return nil, err
+    }
+    defer resultsIterator.Close()
+
+    var res []Announcement
+    var i int
+    for i = 0; resultsIterator.HasNext(); i++ {
+        element, err := resultsIterator.Next()
+        if err != nil {
+            return nil, err
+        }
+
+        newAnn := new(Announcement)
+        err = Deserialize(element.Value, new(Announcement))
+        if err != nil {
+            return nil, err
+        }
+
+        res = append(res, *newAnn)
+    }
+
+    return res, nil
 }
