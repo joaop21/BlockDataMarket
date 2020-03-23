@@ -12,7 +12,7 @@ type Announcement struct {
     DataId         string    `json:"dataId"`
     OwnerId        string    `json:"ownerId"`
     Value          float32   `json:"value"`
-    DataCategory   Category  `json:"dataCategory"`
+    DataCategory   string    `json:"dataCategory"`
     InsertedAt     time.Time `json:"insertedAt"`
 }
 

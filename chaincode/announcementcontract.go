@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "github.com/google/uuid"
     "github.com/hyperledger/fabric-contract-api-go/contractapi"
     "time"
@@ -17,7 +18,13 @@ func (_ *AnnouncementContract) Instantiate(_ contractapi.TransactionContextInter
 
 // Adds a new Announcement to be sell, to the world state with given details
 func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface,
-    dataId string, ownerId string, value float32, category Category) error {
+    dataId string, ownerId string, value float32, cat string) error {
+
+    category, err := checkExistence(cat)
+
+    if err != nil {
+        return fmt.Errorf(err.Error())
+    }
 
     announcement := Announcement{
         AnnouncementId: uuid.New().String(),
@@ -30,7 +37,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 
     announcementAsBytes, _ := announcement.Serialize()
     key, _ := ctx.GetStub().CreateCompositeKey("Announcement", []string{
-        announcement.DataCategory.String(),
+        announcement.DataCategory,
         announcement.OwnerId,
         announcement.AnnouncementId,
     })
