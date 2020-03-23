@@ -1,21 +1,25 @@
 package main
 
-type Category uint
-
-const (
-    Mobile Category = iota
-    Energy
+import (
+    "errors"
 )
 
-func (category Category) String() string {
-    names := []string{
-        "Mobile",
-        "Energy",
-    }
+type Category string
 
-    if category < Mobile || category > Energy {
-        return "Unknown"
-    }
+const (
+    Mobile Category = "Mobile"
+    Energy Category = "Energy"
+)
 
-    return names[category]
+var categories = map[string]Category {
+    "Mobile": Mobile,
+    "Energy": Energy,
+}
+
+func (category Category) checkExistence(input string) (string, error) {
+    if value, found := categories[input]; found == false {
+        return "", errors.New("no key found")
+    } else {
+        return string(value), nil
+    }
 }
