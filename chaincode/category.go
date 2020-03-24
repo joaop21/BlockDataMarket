@@ -18,7 +18,7 @@ var categories = map[string]Category {
 
 func checkExistence(input string) (string, error) {
     if value, found := categories[input]; found == false {
-        return "", errors.New("no key found")
+        return "", errors.New("no category available")
     } else {
         return string(value), nil
     }

@@ -20,12 +20,17 @@ func (_ *AnnouncementContract) Instantiate(_ contractapi.TransactionContextInter
 func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface,
     dataId string, ownerId string, value float32, cat string) error {
 
+    // check if category is available
     category, err := checkExistence(cat)
-
     if err != nil {
         return fmt.Errorf(err.Error())
     }
 
+    // ##### ATTENTION #####
+    // check if ownerID exists
+    // check if ownerID and the invoking entity are the same
+
+    // create a new Announcement
     announcement := Announcement{
         AnnouncementId: uuid.New().String(),
         DataId:         dataId,
@@ -35,6 +40,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
         InsertedAt:     time.Now(),
     }
 
+    // create a composite key
     announcementAsBytes, _ := announcement.Serialize()
     key, _ := ctx.GetStub().CreateCompositeKey("Announcement", []string{
         announcement.DataCategory,
@@ -42,12 +48,21 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
         announcement.AnnouncementId,
     })
 
+    // test if key already exists
+    obj, _ := ctx.GetStub().GetState(key)
+    if obj != nil {
+        return fmt.Errorf("key already exists")
+    }
+
     return ctx.GetStub().PutState(key, announcementAsBytes)
 }
 
-// Get all existing Announcements on world state
-func (_ *AnnouncementContract) GetAnnoucements(ctx contractapi.TransactionContextInterface) ([]Announcement, error) {
-    resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{})
+// Get all existing Announcements on world state that match with the arguments
+func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionContextInterface,
+    args ...string) ([]Announcement, error) {
+
+    // get all the keys that match with args
+    resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", args)
     if err != nil {
         return nil, err
     }
@@ -62,7 +77,11 @@ func (_ *AnnouncementContract) GetAnnoucements(ctx contractapi.TransactionContex
         }
 
         newAnn := new(Announcement)
-        err = Deserialize(element.Value, new(Announcement))
+        announcementAsBytes, err := ctx.GetStub().GetState(element.Key)
+        if err != nil {
+            return nil, fmt.Errorf("failed to read from world state. %s", err.Error())
+        }
+        err = Deserialize(announcementAsBytes, new(Announcement))
         if err != nil {
             return nil, err
         }

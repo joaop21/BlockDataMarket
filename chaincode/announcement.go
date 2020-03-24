@@ -26,7 +26,7 @@ func Deserialize(bytes []byte, ann *Announcement) error {
 	err := json.Unmarshal(bytes, ann)
 
 	if err != nil {
-		return fmt.Errorf("Error deserializing commercial paper. %s", err.Error())
+		return fmt.Errorf("error deserializing Announcement. %s", err.Error())
 	}
 
 	return nil
