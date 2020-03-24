@@ -58,11 +58,10 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 }
 
 // Get all existing Announcements on world state that match with the arguments
-func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionContextInterface,
-    args ...string) ([]Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionContextInterface) ([]Announcement, error) {
 
     // get all the keys that match with args
-    resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", args)
+    resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{})
     if err != nil {
         return nil, err
     }
