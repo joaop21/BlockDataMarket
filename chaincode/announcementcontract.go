@@ -76,11 +76,7 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
         }
 
         newAnn := new(Announcement)
-        announcementAsBytes, err := ctx.GetStub().GetState(element.Key)
-        if err != nil {
-            return nil, fmt.Errorf("failed to read from world state. %s", err.Error())
-        }
-        err = Deserialize(announcementAsBytes, new(Announcement))
+        err = Deserialize(element.Value, newAnn)
         if err != nil {
             return nil, err
         }
