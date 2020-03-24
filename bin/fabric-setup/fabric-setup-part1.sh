@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-. "functions.sh"
+. "../functions.sh"
 
 env=${1:-"dev"}
 
@@ -9,7 +9,7 @@ pp_info "setup-1" "Installing Prerequisites"
 
 if not_installed "git"; then
   pp_error "setup-1" "
-  We are using git to download the needed repositories, since it was not found on your  system we cannot ensure that you are using the correct versions of all the tools. 
+  We are using git to download the needed repositories, since it was not found on your  system we cannot ensure that you are using the correct versions of all the tools.
   Please install it and run this script again, or proceed at your own peril.
   "
 
@@ -20,7 +20,7 @@ fi
 
 if not_installed "curl"; then
   pp_error "setup-1" "
-  We are using curl, since it was not found on your  system we cannot ensure that you   are using the correct versions of all the tools. Please install it and run this 
+  We are using curl, since it was not found on your  system we cannot ensure that you   are using the correct versions of all the tools. Please install it and run this
   script again, or proceed at your own peril.
   "
 
