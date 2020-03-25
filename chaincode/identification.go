@@ -19,7 +19,7 @@ func (ann *Identification) Serialize() ([]byte, error) {
 }
 
 // Deserialize formats the Identification from JSON bytes
-func Deserialize(bytes []byte, iden *Identification) error {
+func (ann *Identification) Deserialize(bytes []byte, iden *Identification) error {
 	err := json.Unmarshal(bytes, ann)
 
 	if err != nil {

@@ -20,7 +20,7 @@ func (ann *Purchase) Serialize() ([]byte, error) {
 }
 
 // Deserialize formats the Purchase from JSON bytes
-func Deserialize(bytes []byte, ann *Purchase) error {
+func (ann *Purchase) Deserialize(bytes []byte, ann *Purchase) error {
 	err := json.Unmarshal(bytes, ann)
 
 	if err != nil {
