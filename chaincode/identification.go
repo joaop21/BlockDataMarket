@@ -6,7 +6,7 @@ import (
 )
 
 // Identification object that represents an identification in the World State
-type Announcement struct {
+type Identification struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`
 	Ip        string `json:"ip"`
@@ -14,7 +14,7 @@ type Announcement struct {
 }
 
 // Serialize formats the Identification as JSON bytes
-func (ann *Announcement) Serialize() ([]byte, error) {
+func (ann *Identification) Serialize() ([]byte, error) {
 	return json.Marshal(ann)
 }
 
