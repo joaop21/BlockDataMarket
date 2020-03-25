@@ -8,12 +8,12 @@ import (
 
 // Announcement object that represents an announcement in the World State
 type Announcement struct {
-    AnnouncementId string    `json:"announcementId"`
-    DataId         string    `json:"dataId"`
-    OwnerId        string    `json:"ownerId"`
-    Value          float32   `json:"value"`
-    DataCategory   string    `json:"dataCategory"`
-    InsertedAt     time.Time `json:"insertedAt"`
+	AnnouncementId string    `json:"announcementId"`
+	DataId         string    `json:"dataId"`
+	OwnerId        string    `json:"ownerId"`
+	Value          float32   `json:"value"`
+	DataCategory   string    `json:"dataCategory"`
+	InsertedAt     time.Time `json:"insertedAt"`
 }
 
 // Serialize formats the Announcement as JSON bytes
@@ -22,7 +22,7 @@ func (ann *Announcement) Serialize() ([]byte, error) {
 }
 
 // Deserialize formats the Announcement from JSON bytes
-func Deserialize(bytes []byte, ann *Announcement) error {
+func (ann *Announcement) Deserialize(bytes []byte) error {
 	err := json.Unmarshal(bytes, ann)
 
 	if err != nil {

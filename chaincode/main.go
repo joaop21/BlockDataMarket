@@ -8,7 +8,13 @@ func main() {
 	announcementContract := new(AnnouncementContract)
 	announcementContract.Name = "AnnouncementContract"
 
-	chaincode, err := contractapi.NewChaincode(announcementContract)
+	identificationContract := new(IdentificationContract)
+	identificationContract.Name = "IdentificationContract"
+
+	purchaseContract := new(PurchaseContract)
+	purchaseContract.Name = "PurchaseContract"
+
+	chaincode, err := contractapi.NewChaincode(announcementContract, identificationContract, purchaseContract)
 
 	if err != nil {
 		panic(err.Error())
