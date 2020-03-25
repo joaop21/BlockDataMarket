@@ -11,4 +11,6 @@ You should run this command in order to run the script and also to export the fi
 source ./deploy-chaincode.sh [Flags]
 ```
 
-ATTENTION: this script initializes the chaincode with InitLedger function.
+This script has a moment of interaction where it needs an input, be aware.
+
+ATTENTION: this script also initializes the chaincode with 'AnnouncementContract:Instantiate' function.
