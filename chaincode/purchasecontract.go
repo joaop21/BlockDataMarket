@@ -64,7 +64,7 @@ func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterfa
 		buyerId,
 	})
 	purchaseAsBytes, err := ctx.GetStub().GetState(key)
-	if purchaseAsBytes != nil || err != nil {
+	if purchaseAsBytes == nil || err != nil {
 		return nil, err
 	}
 
