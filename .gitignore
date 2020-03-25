@@ -1,0 +1,9 @@
+# IDEA
+.idea/
+
+# Fabric folder
+fabric-samples/
+
+# chaincode module and packages
+chaincode/go*
+chaincode/vendor
