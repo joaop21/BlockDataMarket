@@ -22,7 +22,7 @@ func (ann *Announcement) Serialize() ([]byte, error) {
 }
 
 // Deserialize formats the Announcement from JSON bytes
-func (ann *Announcement) Deserialize(bytes []byte, ann *Announcement) error {
+func (ann *Announcement) Deserialize(bytes []byte) error {
 	err := json.Unmarshal(bytes, ann)
 
 	if err != nil {

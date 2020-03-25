@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"time"
 )
 
 type PurchaseContract struct {
@@ -18,14 +17,8 @@ func (_ *PurchaseContract) Instantiate(_ contractapi.TransactionContextInterface
 }
 
 // Adds a new Announcement to be sell, to the world state with given details
-func (_ *PurchaseContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface,
-	dataId string, ownerId string, value float32, cat string) error {
-
-	// check if category is available
-	category, err := checkExistence(cat)
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
+func (_ *PurchaseContract) MakePurchase(ctx contractapi.TransactionContextInterface,
+	announcementId string, buyerId string, value float32) error {
 
 	// ##### ATTENTION #####
 	// check if ownerID exists
@@ -33,8 +26,8 @@ func (_ *PurchaseContract) MakeAnnouncement(ctx contractapi.TransactionContextIn
 	// Done by the API
 
 	// create a new Announcement
-	purchase := PurchaseContract{
-		AnnouncementId: uuid.New().String(),
+	purchase := Purchase{
+		AnnouncementId: announcementId,
 		BuyerId:        buyerId,
 		Value:          value,
 		InsertedAt:     time.Now(),
@@ -43,21 +36,29 @@ func (_ *PurchaseContract) MakeAnnouncement(ctx contractapi.TransactionContextIn
 	// create a composite key
 	purchaseAsBytes, _ := purchase.Serialize()
 	key, _ := ctx.GetStub().CreateCompositeKey("Purchase", []string{
-		purchase.Announcement,
+		purchase.AnnouncementId,
 		purchase.BuyerId,
 	})
 
 	// test if key already exists
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
-		return fmt.Errorf("key already exists")
+		purch := new (Purchase)
+		err := purch.Deserialize(obj)
+		if err != nil {
+			return err
+		}
+		// if the new purchase has a lower value than the existent one
+		if purch.Value >= purchase.Value {
+			return fmt.Errorf("purchase has been made with a higher value")
+		}
 	}
 
 	return ctx.GetStub().PutState(key, purchaseAsBytes)
 }
 
 // Get all a specific purchase from the world state
-func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterface, announcementId string, buyerId string) (Purchase, error) {
+func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterface, announcementId string, buyerId string) (*Purchase, error) {
 	key, _ := ctx.GetStub().CreateCompositeKey("Purchase", []string{
 		announcementId,
 		buyerId,
@@ -67,8 +68,8 @@ func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterfa
 		return nil, err
 	}
 
-	purchase := new Purchase() 
-	err = Deserialize(purchaseAsBytes, purchase)
+	purchase := new (Purchase)
+	err = purchase.Deserialize(purchaseAsBytes)
         if err != nil {
             return nil, err
         }
@@ -98,7 +99,7 @@ func (_ *PurchaseContract) GetAnnouncementPurchases(ctx contractapi.TransactionC
 		}
 
 		newPurch := new(Purchase)
-		err = Deserialize(element.Value, newPurch)
+		err = newPurch.Deserialize(element.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -118,11 +119,11 @@ func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorI
 		}
 
 		newPurch := new(Purchase)
-		err = Deserialize(element.Value, newPurch)
+		err = newPurch.Deserialize(element.Value)
 		if err != nil {
 			return nil, err
-		}		results = append(results, *newPurch)
-
+		}
+		results = append(results, *newPurch)
 	}
 
 	return results, nil
@@ -149,7 +150,7 @@ func (_ *PurchaseContract) GetBuyerPurchases(ctx contractapi.TransactionContextI
 	
 	queryString := fmt.Sprintf("{\"selector\":{\"buyerId\":\"%s\"}}", buyerId)
 
-	queryResults, err := getQueryResultForQueryString(stub, queryString)
+	queryResults, err := getQueryResultForQueryString(ctx.GetStub() , queryString)
 	if err != nil {
 		return nil, err
 	}

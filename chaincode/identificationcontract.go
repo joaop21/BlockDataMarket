@@ -1,10 +1,9 @@
 package main
 
 import (
-    "fmt"
-    "github.com/google/uuid"
-    "github.com/hyperledger/fabric-contract-api-go/contractapi"
-    "time"
+	"fmt"
+	"github.com/google/uuid"
+	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
 type IdentificationContract struct {
@@ -18,21 +17,14 @@ func (_ *IdentificationContract) Instantiate(_ contractapi.TransactionContextInt
 
 // Adds a new Identification to be sell, to the world state with given details
 func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionContextInterface,
-    id string, name string, ip string, publicKey string) error {
-
-	// test if Identification already exists
-    obj, _ := ctx.GetStub().GetState(key)
-    if obj != nil {
-        return fmt.Errorf("Identification already exists")
-    }
+	name string, ip string, publicKey string) error {
 	
 	// create a new Identification
     identification := Identification{
-        AnnouncementId: uuid.New().String(),
-        Id:          dataId,
-        Name:        ownerId,
-        Ip:          value,
-        PublicKey:   category,
+        Id: 	     uuid.New().String(),
+        Name:        name,
+        Ip:          ip,
+        PublicKey:   publicKey,
 	}
 	
 	identificationAsBytes, _ := identification.Serialize()
@@ -40,12 +32,17 @@ func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionC
 		identification.Id,
 	})
 
+	// test if Identification already exists
+	obj, _ := ctx.GetStub().GetState(key)
+	if obj != nil {
+		return fmt.Errorf("identification already exists")
+	}
 
     return ctx.GetStub().PutState(key, identificationAsBytes)
 }
 
 // Get all existing Identification on world state 
-func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionContextInterface, string id) (Identification, error) {
+func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionContextInterface, id string) (*Identification, error) {
 
 	key, _ := ctx.GetStub().CreateCompositeKey("Identification", []string{
 		id,
@@ -55,8 +52,8 @@ func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionCo
 		return nil, err
 	}
 
-	identification := new Identification() 
-	err = Deserialize(identificationAsBytes, identification)
+	identification := new (Identification)
+	err = identification.Deserialize(identificationAsBytes)
         if err != nil {
             return nil, err
         }

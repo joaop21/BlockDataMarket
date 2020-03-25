@@ -59,7 +59,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 	return ctx.GetStub().PutState(key, announcementAsBytes)
 }
 
-// Get all existing Announcements on world state that match with the arguments
+// Get all existing Announcements on world state
 func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionContextInterface) ([]Announcement, error) {
 
 	// get all the keys that match with args
@@ -78,7 +78,7 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 		}
 
 		newAnn := new(Announcement)
-		err = Deserialize(element.Value, newAnn)
+		err = newAnn.Deserialize(element.Value)
 		if err != nil {
 			return nil, err
 		}

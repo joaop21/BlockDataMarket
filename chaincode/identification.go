@@ -14,13 +14,13 @@ type Identification struct {
 }
 
 // Serialize formats the Identification as JSON bytes
-func (ann *Identification) Serialize() ([]byte, error) {
-	return json.Marshal(ann)
+func (iden *Identification) Serialize() ([]byte, error) {
+	return json.Marshal(iden)
 }
 
 // Deserialize formats the Identification from JSON bytes
-func (ann *Identification) Deserialize(bytes []byte, iden *Identification) error {
-	err := json.Unmarshal(bytes, ann)
+func (iden *Identification) Deserialize(bytes []byte) error {
+	err := json.Unmarshal(bytes, iden)
 
 	if err != nil {
 		return fmt.Errorf("error deserializing Identification. %s", err.Error())
