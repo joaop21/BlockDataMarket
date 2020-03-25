@@ -48,7 +48,7 @@ func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionCo
 		id,
 	})
 	identificationAsBytes, err := ctx.GetStub().GetState(key)
-	if identificationAsBytes != nil || err != nil {
+	if identificationAsBytes == nil || err != nil {
 		return nil, err
 	}
 
