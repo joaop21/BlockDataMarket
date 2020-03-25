@@ -81,7 +81,7 @@ func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterfa
 func (_ *PurchaseContract) GetAnnouncementPurchases(ctx contractapi.TransactionContextInterface, announcementId string) ([]Purchase, error) {
 
 	// get all the keys that match with args
-	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Purchase", []string{
 		announcementId,
 	})
 
