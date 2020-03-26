@@ -6,8 +6,9 @@ import (
 	"time"
 )
 
-// Announcement object that represents an announcement in the World State
+// Query object that represents a query in the World State
 type Query struct {
+	QueryId        string    `json:"queryId"`
 	AnnouncementId string    `json:"announcementId"`
 	IssuerId       string    `json:"issuerId"`
 	Query          string    `json:"query"`
@@ -15,12 +16,12 @@ type Query struct {
 	InsertedAt     time.Time `json:"insertedAt"`
 }
 
-// Serialize formats the Announcement as JSON bytes
+// Serialize formats the Query as JSON bytes
 func (q *Query) Serialize() ([]byte, error) {
 	return json.Marshal(q)
 }
 
-// Deserialize formats the Announcement from JSON bytes
+// Deserialize formats the Query from JSON bytes
 func (q *Query) Deserialize(bytes []byte) error {
 	err := json.Unmarshal(bytes, q)
 

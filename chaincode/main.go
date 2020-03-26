@@ -14,7 +14,10 @@ func main() {
 	purchaseContract := new(PurchaseContract)
 	purchaseContract.Name = "PurchaseContract"
 
-	chaincode, err := contractapi.NewChaincode(announcementContract, identificationContract, purchaseContract)
+	queryContract := new(QueryContract)
+	queryContract.Name = "QueryContract"
+
+	chaincode, err := contractapi.NewChaincode(announcementContract, identificationContract, purchaseContract, queryContract)
 
 	if err != nil {
 		panic(err.Error())

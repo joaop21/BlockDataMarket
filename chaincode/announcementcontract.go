@@ -73,6 +73,12 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.TransactionContextInterface,
 	category string) ([]Announcement, error) {
 
+	// check if category is available
+	category, err := checkExistence(category)
+	if err != nil {
+		return nil, fmt.Errorf(err.Error())
+	}
+
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{category})
 	if err != nil {
