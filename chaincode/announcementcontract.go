@@ -103,7 +103,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface,
 	value float32) ([]Announcement, error) {
 
-	queryString := fmt.Sprintf("{\"selector\":{\"price\":{\"$lte\": %f\"}}}", value)
+	queryString := fmt.Sprintf("{\"selector\":{\"price\":{\"$lte\": %f}}}", value)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
