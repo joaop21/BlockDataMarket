@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"time"
 )
 
@@ -11,7 +12,7 @@ type Announcement struct {
 	AnnouncementId string    `json:"announcementId"`
 	DataId         string    `json:"dataId"`
 	OwnerId        string    `json:"ownerId"`
-	Value          float32   `json:"value"`
+	Price          float32   `json:"price"`
 	DataCategory   string    `json:"dataCategory"`
 	InsertedAt     time.Time `json:"insertedAt"`
 }
@@ -30,4 +31,27 @@ func (ann *Announcement) Deserialize(bytes []byte) error {
 	}
 
 	return nil
+}
+
+// loop an iterator
+func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]Announcement, error)  {
+	defer resultsIterator.Close()
+
+	var res []Announcement
+	var i int
+	for i = 0; resultsIterator.HasNext(); i++ {
+		element, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		newAnn := new(Announcement)
+		err = newAnn.Deserialize(element.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, *newAnn)
+	}
+	return res, nil
 }

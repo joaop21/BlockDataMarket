@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"time"
 )
 
 type AnnouncementContract struct {
@@ -19,7 +18,7 @@ func (_ *AnnouncementContract) Instantiate(_ contractapi.TransactionContextInter
 
 // Adds a new Announcement to be sell, to the world state with given details
 func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface,
-	dataId string, ownerId string, value float32, cat string) error {
+	dataId string, ownerId string, price float32, cat string) error {
 
 	// check if category is available
 	category, err := checkExistence(cat)
@@ -37,7 +36,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 		AnnouncementId: uuid.New().String(),
 		DataId:         dataId,
 		OwnerId:        ownerId,
-		Value:          value,
+		Price:          price,
 		DataCategory:   category,
 		InsertedAt:     time.Now(),
 	}
@@ -67,24 +66,41 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 	if err != nil {
 		return nil, err
 	}
-	defer resultsIterator.Close()
+	return GetIteratorValues(resultsIterator)
+}
 
-	var res []Announcement
-	var i int
-	for i = 0; resultsIterator.HasNext(); i++ {
-		element, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
+// Get all Announcements for a category
+func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.TransactionContextInterface,
+	category string) ([]Announcement, error) {
 
-		newAnn := new(Announcement)
-		err = newAnn.Deserialize(element.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, *newAnn)
+	// get all the keys that match with args
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{category})
+	if err != nil {
+		return nil, err
 	}
+	return GetIteratorValues(resultsIterator)
+}
 
-	return res, nil
+// Get all Announcements for an owner
+func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.TransactionContextInterface,
+	ownerId string) ([]Announcement, error) {
+
+	// get all the keys that match with args
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{ownerId})
+	if err != nil {
+		return nil, err
+	}
+	return GetIteratorValues(resultsIterator)
+}
+
+// Get all Announcements lower than a value
+func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface,
+	value float32) ([]Announcement, error) {
+
+	queryString := fmt.Sprintf("{\"selector\":{\"price\":{\"$lte\":\"%f\"}}}", value)
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, err
+	}
+	return GetIteratorValues(resultsIterator)
 }
