@@ -18,7 +18,7 @@ func (_ *AnnouncementContract) Instantiate(_ contractapi.TransactionContextInter
 
 // Adds a new Announcement to be sell, to the world state with given details
 func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface,
-	dataId string, ownerId string, price float32, cat string) error {
+	dataId string, ownerId string, prices []float32, cat string) error {
 
 	// check if category is available
 	category, err := checkExistence(cat)
@@ -36,7 +36,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 		AnnouncementId: uuid.New().String(),
 		DataId:         dataId,
 		OwnerId:        ownerId,
-		Price:          price,
+		Prices:         prices,
 		DataCategory:   category,
 		InsertedAt:     time.Now(),
 	}
@@ -110,3 +110,4 @@ func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.Transac
 	}
 	return GetIteratorValues(resultsIterator)
 }
+

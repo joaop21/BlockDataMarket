@@ -18,14 +18,15 @@ func (_ *QueryContract) Instantiate(_ contractapi.TransactionContextInterface) e
 
 // Adds a new Query to world state
 func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface,
-	announcementId string, issuerId string, queryarg string) error {
+	announcementId string, issuerId string, queryArg string, price int) error {
 
 	// create a new Announcement
 	query := Query{
 		QueryId:        uuid.New().String(),
 		AnnouncementId: announcementId,
 		IssuerId:       issuerId,
-		Query:          queryarg,
+		Price:			price,
+		Query:          queryArg,
 		Response:   	"",
 		InsertedAt:     time.Now(),
 	}

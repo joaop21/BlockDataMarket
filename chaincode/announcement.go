@@ -12,7 +12,7 @@ type Announcement struct {
 	AnnouncementId string    `json:"announcementId"`
 	DataId         string    `json:"dataId"`
 	OwnerId        string    `json:"ownerId"`
-	Price          float32   `json:"price"`
+	Prices         []float32 `json:"prices"`
 	DataCategory   string    `json:"dataCategory"`
 	InsertedAt     time.Time `json:"insertedAt"`
 }
@@ -55,3 +55,4 @@ func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]Anno
 	}
 	return res, nil
 }
+
