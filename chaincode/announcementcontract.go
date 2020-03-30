@@ -73,6 +73,12 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.TransactionContextInterface,
 	category string) ([]Announcement, error) {
 
+	// check if category is available
+	category, err := checkExistence(category)
+	if err != nil {
+		return nil, fmt.Errorf(err.Error())
+	}
+
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{category})
 	if err != nil {
@@ -85,8 +91,8 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.Transa
 func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.TransactionContextInterface,
 	ownerId string) ([]Announcement, error) {
 
-	// get all the keys that match with args
-	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{ownerId})
+	queryString := fmt.Sprintf("{\"selector\":{\"ownerId\":\"%s\"}}", ownerId)
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +103,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface,
 	value float32) ([]Announcement, error) {
 
-	queryString := fmt.Sprintf("{\"selector\":{\"price\":{\"$lte\":\"%f\"}}}", value)
+	queryString := fmt.Sprintf("{\"selector\":{\"price\":{\"$lte\": %f}}}", value)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
