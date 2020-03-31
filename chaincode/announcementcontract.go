@@ -17,29 +17,10 @@ func (_ *AnnouncementContract) Instantiate(_ contractapi.TransactionContextInter
 }
 
 // Adds a new Announcement to be sell, to the world state with given details
-func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface,
-	dataId string, ownerId string, prices []float32, cat string) error {
-
-	// check if category is available
-	category, err := checkExistence(cat)
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
-
-	// ##### ATTENTION #####
-	// check if ownerID exists
-	// check if ownerID and the invoking entity are the same
-	// Done by the API
+func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface, dataId string, ownerId string, prices map[string]float32, categoryName string) error {
 
 	// create a new Announcement
-	announcement := Announcement{
-		AnnouncementId: uuid.New().String(),
-		DataId:         dataId,
-		OwnerId:        ownerId,
-		Prices:         prices,
-		DataCategory:   category,
-		InsertedAt:     time.Now(),
-	}
+	announcement := NewAnnouncement(uuid.New().String(), dataId, ownerId, prices, categoryName, time.Now())
 
 	// create a composite key
 	announcementAsBytes, _ := announcement.Serialize()
@@ -70,17 +51,16 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 }
 
 // Get all Announcements for a category
-func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.TransactionContextInterface,
-	category string) ([]Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.TransactionContextInterface, categoryName string) ([]Announcement, error) {
 
 	// check if category is available
-	category, err := checkExistence(category)
+	category, err := checkExistence(categoryName)
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
 	}
 
 	// get all the keys that match with args
-	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{category})
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{category.name})
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +68,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.Transa
 }
 
 // Get all Announcements for an owner
-func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.TransactionContextInterface,
-	ownerId string) ([]Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.TransactionContextInterface, ownerId string) ([]Announcement, error) {
 
 	queryString := fmt.Sprintf("{\"selector\":{\"ownerId\":\"%s\"}}", ownerId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
@@ -100,8 +79,8 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 }
 
 // Get all Announcements lower than a value
-func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface,
-	value float32) ([]Announcement, error) {
+// !!needs to updated!! Not supporting multiple queries with different prices on same document
+func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface, value float32) ([]Announcement, error) {
 
 	queryString := fmt.Sprintf("{\"selector\":{\"price\":{\"$lte\": %f}}}", value)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)

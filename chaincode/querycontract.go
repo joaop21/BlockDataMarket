@@ -17,8 +17,7 @@ func (_ *QueryContract) Instantiate(_ contractapi.TransactionContextInterface) e
 }
 
 // Adds a new Query to world state
-func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface,
-	announcementId string, issuerId string, queryArg string, price int) error {
+func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, announcementId string, issuerId string, queryArg string, price float32) error {
 
 	// create a new Announcement
 	query := Query{
@@ -49,8 +48,7 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface,
 }
 
 // Adds a new Query to world state
-func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
-	announcementId string, issuerId string, queryid string, response string) error {
+func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface, announcementId string, issuerId string, queryid string, response string) error {
 
 	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
 		announcementId,
@@ -76,8 +74,7 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 }
 
 // Get queries made to an announcement
-func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionContextInterface,
-	announcementId string) ([]Query, error) {
+func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) ([]Query, error) {
 
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Query", []string{announcementId,})

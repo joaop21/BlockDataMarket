@@ -4,22 +4,29 @@ import (
     "errors"
 )
 
-type Category string
+type Category struct {
+    name    string
+    actions []string
+}
 
-const (
-    Mobile Category = "Mobile"
-    Energy Category = "Energy"
+var (
+    Mobile = Category{
+        name: "Mobile",
+        actions: []string{"Query1", "Query2"}}
+    Energy = Category{
+        name: "Energy",
+        actions: []string{"Query1", "Query2"}}
 )
 
 var categories = map[string]Category {
-    "Mobile": Mobile,
+    "Mobile": Mobile ,
     "Energy": Energy,
 }
 
-func checkExistence(input string) (string, error) {
+func checkExistence(input string) (*Category, error) {
     if value, found := categories[input]; found == false {
-        return "", errors.New("no category available")
+        return nil, errors.New("no category available")
     } else {
-        return string(value), nil
+        return &value, nil
     }
 }
