@@ -12,13 +12,13 @@ type Announcement struct {
 	AnnouncementId string    			`json:"announcementId"`
 	DataId         string    			`json:"dataId"`
 	OwnerId        string    			`json:"ownerId"`
-	QueryPrices    map[string]float32   `json:"prices"`
+	QueryPrices    []float32   			`json:"prices"`
 	DataCategory   string    			`json:"dataCategory"`
 	InsertedAt     time.Time 			`json:"insertedAt"`
 }
 
 // Constructor for Announcement
-func NewAnnouncement(announcementId string, dataId string, ownerId string, queryPrices map[string]float32, categoryName string, insertionDate time.Time) *Announcement {
+func NewAnnouncement(announcementId string, dataId string, ownerId string, queryPrices []float32, categoryName string, insertionDate time.Time) *Announcement {
 	category, err := checkExistence(categoryName)
 
 	if err != nil || len(queryPrices) != len(category.actions) {

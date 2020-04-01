@@ -17,10 +17,14 @@ func (_ *AnnouncementContract) Instantiate(_ contractapi.TransactionContextInter
 }
 
 // Adds a new Announcement to be sell, to the world state with given details
-func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface, dataId string, ownerId string, prices map[string]float32, categoryName string) error {
+func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface, dataId string, ownerId string, prices []float32, categoryName string) error {
 
 	// create a new Announcement
 	announcement := NewAnnouncement(uuid.New().String(), dataId, ownerId, prices, categoryName, time.Now())
+
+	if announcement == nil {
+		return fmt.Errorf("Error creating announcement")
+	}
 
 	// create a composite key
 	announcementAsBytes, _ := announcement.Serialize()
@@ -79,10 +83,9 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 }
 
 // Get all Announcements lower than a value
-// !!needs to updated!! Not supporting multiple queries with different prices on same document
 func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface, value float32) ([]Announcement, error) {
 
-	queryString := fmt.Sprintf("{\"selector\":{\"price\":{\"$lte\": %f}}}", value)
+	queryString := fmt.Sprintf("{\"selector\": {\"prices\": {\"$elemmatch\": {\"$lte\": %f}}}}", value)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
