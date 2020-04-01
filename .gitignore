@@ -7,3 +7,10 @@ fabric-samples/
 # chaincode module and packages
 chaincode/go*
 chaincode/vendor
+
+# Node
+node_modules/
+package-lock.json
+
+# DS_Store
+.DS_Store
