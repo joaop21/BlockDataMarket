@@ -31,12 +31,10 @@ async function main() {
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
 
-        // Get the contract from the network.
-        const contract = network.getContract('AnnouncementContract');
+        // Get the chaincode from the network.
+        const contract = network.getContract('dataMarket');
 
         // Submit the specified transaction.
-        // createCar transaction - requires 5 argument, ex: ('createCar', 'CAR12', 'Honda', 'Accord', 'Black', 'Tom')
-        // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
         const result = await contract.submitTransaction('GetAnnouncements');
         console.log(`Transaction has been submitted, result is: ${result.toString()}`);
 
