@@ -85,7 +85,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 // Get all Announcements lower than a value
 func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface, value float32) ([]Announcement, error) {
 
-	queryString := fmt.Sprintf("{\"selector\": {\"prices\": {\"$elemmatch\": {\"$lte\": %f}}}}", value)
+	queryString := fmt.Sprintf("{\"selector\": {\"prices\": {\"$elemMatch\": {\"$lte\": %f}}}}", value)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
