@@ -34,8 +34,46 @@ async function main() {
         // Get the chaincode from the network.
         const contract = network.getContract('dataMarket');
 
-        // Submit the specified transaction.
-        const result = await contract.submitTransaction('GetAnnouncements');
+        // accept args from stdin
+        var args = process.argv.slice(2);
+        let result = null;
+        // submit transaction depending on first arg
+        switch (args[0]) {
+            case 'AnnouncementContract:MakeAnnouncement':
+                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
+                break;
+            case 'AnnouncementContract:GetAnnouncements':
+                result = await contract.submitTransaction(args[0]);
+                break;
+            case 'AnnouncementContract:GetAnnouncementsByCategory':
+                result = await contract.submitTransaction(args[0], args[1]);
+                break;
+            case 'AnnouncementContract:GetAnnouncementsByOwner':
+                result = await contract.submitTransaction(args[0], args[1]);
+                break;
+            case 'AnnouncementContract:GetAnnouncementsLowerThan':
+                result = await contract.submitTransaction(args[0], args[1]);
+                break;
+            case 'QueryContract:MakeQuery':
+                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
+                break;
+            case 'QueryContract:PutResponse':
+                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
+                break;
+            case 'QueryContract:GetQueriesByAnnouncement':
+                result = await contract.submitTransaction(args[0], args[1]);
+                break;
+            case 'QueryContract:GetQueriesByIssuer':
+                result = await contract.submitTransaction(args[0], args[1]);
+                break;
+            case 'IdentificationContract:MakeIdentification':
+                result = await contract.submitTransaction(args[0], args[1], args[2]);
+                break;
+            case 'IdentificationContract:GetIdentification':
+                result = await contract.submitTransaction(args[0], args[1]);
+                break;
+        }
+
         console.log(`Transaction has been submitted, result is: ${result.toString()}`);
 
         // Disconnect from the gateway.
