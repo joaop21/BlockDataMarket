@@ -55,7 +55,7 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'QueryContract:MakeQuery':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
+                result = await contract.submitTransaction(args[0], args[1], args[2], args[3], args[4]);
                 break;
             case 'QueryContract:PutResponse':
                 result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
