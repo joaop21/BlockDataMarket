@@ -67,7 +67,7 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'IdentificationContract:MakeIdentification':
-                result = await contract.submitTransaction(args[0], args[1], args[2]);
+                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
                 break;
             case 'IdentificationContract:GetIdentification':
                 result = await contract.submitTransaction(args[0], args[1]);
