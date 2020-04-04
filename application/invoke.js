@@ -40,7 +40,7 @@ async function main() {
         // submit transaction depending on first arg
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
+                result = await contract.submitTransaction(args[0], args[1], args[2], args[3], args[4]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);
