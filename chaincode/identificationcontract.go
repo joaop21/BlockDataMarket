@@ -16,8 +16,7 @@ func (_ *IdentificationContract) Instantiate(_ contractapi.TransactionContextInt
 }
 
 // Adds a new Identification to be sell, to the world state with given details
-func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionContextInterface,
-	name string, ip string, publicKey string) error {
+func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionContextInterface, name string, ip string, publicKey string) error {
 	
 	// create a new Identification
     identification := Identification{

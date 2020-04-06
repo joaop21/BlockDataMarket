@@ -17,8 +17,7 @@ func (_ *PurchaseContract) Instantiate(_ contractapi.TransactionContextInterface
 }
 
 // Adds a new Announcement to be sell, to the world state with given details
-func (_ *PurchaseContract) MakePurchase(ctx contractapi.TransactionContextInterface,
-	announcementId string, buyerId string, value float32) error {
+func (_ *PurchaseContract) MakePurchase(ctx contractapi.TransactionContextInterface, announcementId string, buyerId string, value float32) error {
 
 	// ##### ATTENTION #####
 	// check if ownerID exists
