@@ -3,14 +3,14 @@
 const { Gateway, Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
+const database = require('./database')
 
 
 async function makeAnnouncement(filename, ownerId, prices, category){
     //check if owner exists
     const owner = contract.submitTransaction('IdentificationContract:GetIdentification', ownerId);
     if(owner){
-        //insert file ,get dataId 
-        dataId = 0 // replace
+        dataId = database.putContent(filename) // replace
         return (await contract.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, ownerId, prices, category));
     }else{
         return "Erro: OwnerId não existe, registe-se";
@@ -49,8 +49,12 @@ async function makeQuery(announcementId, issuerId, queryArg, price){
 
 //ir buscar a resposta ao ficheiro na bd, truncar conforme o nivel
 function getResponse(dataId, level){
+    content = database.getContent(dataId);
+    filePercentage = 0.25*level; //level 1 a 4
     
+    return contract.slice(0, content.length*filePercentage);
 }
+
 
 async function putResponse(queryid){
     const query = await contract.submitTransaction('QueryContract:GetQuery',queryid);
