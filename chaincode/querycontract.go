@@ -21,6 +21,7 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, a
 
 	// create a new Announcement
 	query := Query{
+		Type:			"Query"
 		QueryId:        uuid.New().String(),
 		AnnouncementId: announcementId,
 		IssuerId:       issuerId,

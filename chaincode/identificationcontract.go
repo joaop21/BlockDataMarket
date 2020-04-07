@@ -20,7 +20,8 @@ func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionC
 	
 	// create a new Identification
     identification := Identification{
-        Id: 	     uuid.New().String(),
+		Type:        "Identification"
+		Id: 	     uuid.New().String(),
         Name:        name,
         Ip:          ip,
         PublicKey:   publicKey,

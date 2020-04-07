@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"time"
 )
 
 type AnnouncementContract struct {
@@ -43,6 +44,23 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 	return ctx.GetStub().PutState(key, announcementAsBytes)
 }
 
+// Get Announcement on world state by id
+func (_ *AnnouncementContract) GetAnnouncement(ctx contractapi.TransactionContextInterface, string announcementId) (Announcement, error) {
+
+	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Announcement\",\"announcementId\":\"%s\"}}", announcementId)
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, err
+	}
+	announcement := new(Announcement)
+	results = announcement.GetIteratorValues(resultsIterator)
+	if results.length == 0 {
+		return nil, fmt.Errorf("Announcement doesn't exists")
+	}
+
+	return result[0], nil
+}
+
 // Get all existing Announcements on world state
 func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionContextInterface) ([]Announcement, error) {
 
@@ -51,7 +69,8 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 	if err != nil {
 		return nil, err
 	}
-	return GetIteratorValues(resultsIterator)
+	announcement := new(Announcement)
+	return announcement.GetIteratorValues(resultsIterator)
 }
 
 // Get all Announcements for a category
@@ -68,7 +87,8 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.Transa
 	if err != nil {
 		return nil, err
 	}
-	return GetIteratorValues(resultsIterator)
+	announcement := new(Announcement)
+	return announcement.GetIteratorValues(resultsIterator)
 }
 
 // Get all Announcements for an owner
@@ -79,7 +99,8 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 	if err != nil {
 		return nil, err
 	}
-	return GetIteratorValues(resultsIterator)
+	announcement := new(Announcement)
+	return announcement.GetIteratorValues(resultsIterator)
 }
 
 // Get all Announcements lower than a value
@@ -90,6 +111,6 @@ func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.Transac
 	if err != nil {
 		return nil, err
 	}
-	return GetIteratorValues(resultsIterator)
+	announcement := new(Announcement)
+	return announcement.GetIteratorValues(resultsIterator)
 }
-

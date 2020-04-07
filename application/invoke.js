@@ -4,6 +4,79 @@ const { Gateway, Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 
+
+async function makeAnnouncement(filename, ownerId, prices, category){
+    //check if owner exists
+    const owner = contract.submitTransaction('IdentificationContract:GetIdentification', ownerId);
+    if(owner){
+        //insert file ,get dataId 
+        dataId = 0 // replace
+        return (await contract.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, ownerId, prices, category));
+    }else{
+        return "Erro: OwnerId não existe, registe-se";
+    }
+}
+
+//Prototype to check query sintax
+function checkQuerySintax(query){
+    if(1==0)
+        return false, "Erro: Invalid query sintax"    
+    
+    return true, nil
+}
+
+async function makeQuery(announcementId, issuerId, queryArg, price){
+    //check if issuerId exists
+    const issuer = contract.submitTransaction('IdentificationContract:GetIdentification', issuerId);
+    if(issuer){
+        announcement = contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
+        if(announcement){
+            //check querySintax
+            check = checkQuerySintax(queryArg);
+            if(check[0]){
+                return (await contract.submitTransaction('QueryContract:MakeQuery', announcementId, issuer, queryArg, price));
+            }else{  
+                return check[1];
+            }
+        }else{
+            return "Erro: Announcement id invalido";
+        }
+        
+    }else{
+        return "Erro: Issuer não existe, registe-se";
+    }
+}
+
+//ir buscar a resposta ao ficheiro na bd, truncar conforme o nivel
+function getResponse(dataId, level){
+    
+}
+
+async function putResponse(queryid){
+    const query = await contract.submitTransaction('QueryContract:GetQuery',queryid);
+    if(query){
+        const queryJson = JSON.parse(query);
+        const announcementId = queryJson.announcementId;
+        
+        const announcement = contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
+        const announcementJson = JSON.parse(announcement);
+        
+        const prices = announcementJson.prices;
+        const index = prices.findIndex(queryJson.price);
+        if(index != -1){
+            response = getResponse(announcement.dataId, index+1);
+            await contract.submitTransaction('QueryContract:PutResponse',queryid, response);
+        }else{
+            return "Oferta recusada, preço não correspondia a nenhum dos patamares"
+        }
+
+
+    }else{
+        return "Erro: Query não existe"
+    }
+
+}
+
 async function main() {
     try {
         // load the network configuration
@@ -40,7 +113,7 @@ async function main() {
         // submit transaction depending on first arg
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3], args[4]);
+                result = await makeAnnouncement(args[1], args[2], args[3], args[4]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);
@@ -55,10 +128,10 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'QueryContract:MakeQuery':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3], args[4]);
+                result = await makeQuery(args[1], args[2], args[3], args[4]);
                 break;
             case 'QueryContract:PutResponse':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3], args[4]);
+                result = await putResponse(args[1]);
                 break;
             case 'QueryContract:GetQueriesByAnnouncement':
                 result = await contract.submitTransaction(args[0], args[1]);
