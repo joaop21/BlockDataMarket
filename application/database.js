@@ -19,8 +19,8 @@ MongoClient.connect(function(err, client) {
 });
 
 // gives a DB client when connected
-var connect = new Promise(function (returnedValue){
-  if(typeof db != 'undefined'){
+const connect = new Promise((returnedValue) => {
+  if (typeof db != 'undefined') {
     returnedValue(db)
   } else {
     // returnedValue is an anonymous function, so it takes the value of callback when it's available
@@ -30,7 +30,7 @@ var connect = new Promise(function (returnedValue){
 
 
 // exports this function to put data in DB
-module.exports.putContent = function(filepath){
+module.exports.putContent = (filepath) => {
   return new Promise(async (dataID) => {
     let dbconn = await connect;
     const content = fs.readFileSync(filepath, 'utf8');
@@ -46,10 +46,10 @@ module.exports.putContent = function(filepath){
 };
 
 // exports this function to get data from DB
-module.exports.getContent = function(dataID){
+module.exports.getContent = (dataID) => {
   return new Promise(async (res) => {
     let dbconn = await connect;
-    var criteria = {
+    const criteria = {
       dataID: dataID
     };
     dbconn.collection(config.database.collection).findOne(criteria, function(err, result) {
