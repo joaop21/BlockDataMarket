@@ -16,7 +16,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "fabric-ca-client": "beta",
-    "fabric-network": "beta"
+    "fabric-network": "beta",
+    "mongodb": "^3.5.5",
+    "uuid": "^7.0.3"
   },
   "devDependencies": {
     "chai": "^4.2.0",
