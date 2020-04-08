@@ -27,7 +27,7 @@ func NewAnnouncement(announcementId string, dataId string, ownerId string, query
 	}
 
 	return &Announcement{
-		Type: "Announcement"
+		Type: "Announcement",
 		AnnouncementId: announcementId,
 		DataId:         dataId,
 		OwnerId:        ownerId,

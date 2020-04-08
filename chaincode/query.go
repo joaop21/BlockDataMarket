@@ -36,7 +36,7 @@ func (q *Query) Deserialize(bytes []byte) error {
 	return nil
 }
 
-func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]Query, error) {
+func (q *Query) GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]Query, error) {
 	defer resultsIterator.Close()
 
 	var res []Query

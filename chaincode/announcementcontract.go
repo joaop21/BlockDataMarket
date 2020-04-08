@@ -45,20 +45,25 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 }
 
 // Get Announcement on world state by id
-func (_ *AnnouncementContract) GetAnnouncement(ctx contractapi.TransactionContextInterface, string announcementId) (Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) (*Announcement, error) {
 
+	var results []Announcement
 	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Announcement\",\"announcementId\":\"%s\"}}", announcementId)
+
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
 	}
 	announcement := new(Announcement)
-	results = announcement.GetIteratorValues(resultsIterator)
-	if results.length == 0 {
+	results, err = announcement.GetIteratorValues(resultsIterator)
+	if err != nil {
+		return nil, err
+	}	
+	if len(results) == 0 {
 		return nil, fmt.Errorf("Announcement doesn't exists")
 	}
 
-	return result[0], nil
+	return &(results[0]), nil
 }
 
 // Get all existing Announcements on world state

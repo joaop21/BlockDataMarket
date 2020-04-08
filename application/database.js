@@ -54,7 +54,7 @@ module.exports.getContent = (dataID) => {
     };
     dbconn.collection(config.database.collection).findOne(criteria, function(err, result) {
       if (err) throw err;
-      res(result);
+      res(result.content);
     });
   });
 };
