@@ -3,6 +3,83 @@
 const { Gateway, Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
+const database = require('./database')
+
+
+async function makeAnnouncement(contract, filename, ownerId, prices, category){
+    //check if owner exists
+    const owner = await contract.submitTransaction('IdentificationContract:GetIdentification', ownerId);
+	if(owner){
+        const dataId = await database.putContent(filename)
+        console.log(dataId + " " + ownerId + " " + prices + " " + category)
+	return (await contract.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, ownerId, prices, category));
+    }else{
+        return "Erro: OwnerId não existe, registe-se";
+    }
+}
+
+//Prototype to check query sintax
+function checkQuerySintax(query){
+    if(1==0)
+        return [false, "Erro: Invalid query sintax"]    
+    
+    return [true, null]
+}
+
+async function makeQuery(contract, announcementId, issuerId, queryArg, price){
+    //check if issuerId exists
+    const issuer = await contract.submitTransaction('IdentificationContract:GetIdentification', issuerId);
+    if(issuer){
+        const announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
+        if(announcement){
+            //check querySintax
+            const check = checkQuerySintax(queryArg);
+	    if(check[0]){
+                return (await contract.submitTransaction('QueryContract:MakeQuery', announcementId, issuerId, queryArg, price));
+            }else{  
+                return check[1];
+            }
+        }else{
+            return "Erro: Announcement id invalido";
+        }
+        
+    }else{
+        return "Erro: Issuer não existe, registe-se";
+    }
+}
+
+//ir buscar a resposta ao ficheiro na bd, truncar conforme o nivel
+async function getResponse(dataId, level){
+    const content = await database.getContent(dataId);
+    const filePercentage = 0.5*level; //level 1 a 2
+    return content.slice(0, content.length*filePercentage);
+}
+
+
+async function putResponse(contract, queryid){
+    const query = await contract.submitTransaction('QueryContract:GetQuery',queryid);
+    if(query){
+        const queryJson = JSON.parse(query);
+        const announcementId = queryJson.announcementId;
+        
+        const announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
+        const announcementJson = JSON.parse(announcement);
+        
+        const prices = announcementJson.prices; 
+        const index = prices.findIndex( (price) => price == queryJson.price);
+        if(index != -1){
+            const response = await getResponse(announcementJson.dataId, index+1); 
+	    return await contract.submitTransaction('QueryContract:PutResponse',queryid, response);
+        }else{
+            return "Oferta recusada, preço não correspondia a nenhum dos patamares"
+        }
+
+
+    }else{
+        return "Erro: Query não existe"
+    }
+
+}
 
 async function main() {
     try {
@@ -40,7 +117,7 @@ async function main() {
         // submit transaction depending on first arg
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3], args[4]);
+                result = await makeAnnouncement(contract, args[1], args[2], args[3], args[4]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);
@@ -55,10 +132,10 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'QueryContract:MakeQuery':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3], args[4]);
+                result = await makeQuery(contract, args[1], args[2], args[3], args[4]);
                 break;
             case 'QueryContract:PutResponse':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3], args[4]);
+                result = await putResponse(contract, args[1]);
                 break;
             case 'QueryContract:GetQueriesByAnnouncement':
                 result = await contract.submitTransaction(args[0], args[1]);

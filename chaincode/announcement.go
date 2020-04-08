@@ -9,6 +9,7 @@ import (
 
 // Announcement object that represents an announcement in the World State
 type Announcement struct {
+	Type		   string				`json:"type"`
 	AnnouncementId string    			`json:"announcementId"`
 	DataId         string    			`json:"dataId"`
 	OwnerId        string    			`json:"ownerId"`
@@ -26,6 +27,7 @@ func NewAnnouncement(announcementId string, dataId string, ownerId string, query
 	}
 
 	return &Announcement{
+		Type: "Announcement",
 		AnnouncementId: announcementId,
 		DataId:         dataId,
 		OwnerId:        ownerId,
@@ -52,7 +54,7 @@ func (ann *Announcement) Deserialize(bytes []byte) error {
 }
 
 // loop an iterator
-func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]Announcement, error)  {
+func (ann *Announcement) GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]Announcement, error)  {
 	defer resultsIterator.Close()
 
 	var res []Announcement

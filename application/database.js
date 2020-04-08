@@ -12,6 +12,7 @@ let callback, db;
 
 // Use connect method to connect to Mongo
 // This method connects to DB asynchronously
+
 MongoClient.connect().then(client => {
   db = client.db(config.database.name);
   callback(db);
@@ -51,8 +52,9 @@ module.exports.getContent = (dataID) => {
     const criteria = {
       dataID: dataID
     };
+
     dbconn.collection(config.database.collection).findOne(criteria)
-        .then(result => res(result))
+        .then(result => res(result.content))
         .catch(err => console.error(err));
   });
 };

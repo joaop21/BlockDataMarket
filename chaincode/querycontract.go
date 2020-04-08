@@ -21,6 +21,7 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, a
 
 	// create a new Announcement
 	query := Query{
+		Type:			"Query",
 		QueryId:        uuid.New().String(),
 		AnnouncementId: announcementId,
 		IssuerId:       issuerId,
@@ -47,28 +48,36 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, a
 	return ctx.GetStub().PutState(key, queryAsBytes)
 }
 
+
 // Adds a new Query to world state
-func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface, announcementId string, issuerId string, queryid string, response string) error {
-
-	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
-		announcementId,
-		issuerId,
-		queryid,
-	})
-
-	queryAsBytes, err := ctx.GetStub().GetState(key)
-	if queryAsBytes == nil || err != nil {
-		return err
-	}
-
-	query := new(Query)
-	err = query.Deserialize(queryAsBytes)
+func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface, queryid string, response string) error {
+	
+	var results []Query
+	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryid)
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return err
 	}
+	query := new(Query)
+	results, err = query.GetIteratorValues(resultsIterator)
+	if err != nil {
+		return err
+	}
+	if len(results) == 0 {
+		return fmt.Errorf("Query doesn't exists")
+	}
 
+	query = &(results[0])
 	query.Response = response
+	var queryAsBytes []byte
 	queryAsBytes, _ = query.Serialize()
+
+	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
+                query.AnnouncementId,
+                query.IssuerId,
+                query.QueryId,
+        })
+
 
 	return ctx.GetStub().PutState(key, queryAsBytes)
 }
@@ -101,6 +110,29 @@ func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionCont
 	}
 	return res, nil
 }
+
+// Get query by its id
+func (_ *QueryContract) GetQuery(ctx contractapi.TransactionContextInterface,
+	queryId string) (*Query, error) {
+
+	var results []Query
+	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryId)
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, err
+	}
+	query := new(Query)
+	results, err = query.GetIteratorValues(resultsIterator)
+	if err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, fmt.Errorf("Query doesn't exists")
+	}
+
+	return &(results[0]), nil
+}
+
 
 // Get queries made to an announcement by an issuer
 func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInterface,
