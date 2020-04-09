@@ -1,7 +1,7 @@
 const assert = require('assert');
 const mongo = require('mongodb');
 const { v1: uuidv1 } = require('uuid');
-const config = require('./config.json');
+const config = require('../config.json');
 const fs = require('fs');
 
 // Connection URL
