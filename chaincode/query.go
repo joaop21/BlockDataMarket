@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./utils"
+	"dataMarket/utils"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"time"
 )

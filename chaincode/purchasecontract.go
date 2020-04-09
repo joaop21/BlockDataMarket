@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./utils"
+	"dataMarket/utils"
 	"fmt"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
