@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./utils"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"time"
 )
@@ -28,13 +29,13 @@ func (q *Query) GetIteratorValues(resultsIterator shim.StateQueryIteratorInterfa
 			return nil, err
 		}
 
-		newAnn := new(Query)
-		err = newAnn.Deserialize(element.Value)
+		newQ := new(Query)
+		err = utils.Deserialize(element.Value, newQ)
 		if err != nil {
 			return nil, err
 		}
 
-		res = append(res, *newAnn)
+		res = append(res, *newQ)
 	}
 	return res, nil
 }

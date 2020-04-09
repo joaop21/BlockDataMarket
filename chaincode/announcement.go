@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"time"
 )
 
@@ -32,29 +31,6 @@ func NewAnnouncement(announcementId string, dataId string, ownerId string, query
 		QueryPrices:    queryPrices,
 		DataCategory:   category.name,
 		InsertedAt:     insertionDate,
-	};
-}
-
-// loop an iterator
-func (ann *Announcement) GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]Announcement, error)  {
-	defer resultsIterator.Close()
-
-	var res []Announcement
-	var i int
-	for i = 0; resultsIterator.HasNext(); i++ {
-		element, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-
-		newAnn := new(Announcement)
-		err = newAnn.Deserialize(element.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, *newAnn)
 	}
-	return res, nil
 }
 
