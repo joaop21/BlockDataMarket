@@ -3,10 +3,9 @@ package utils
 import "github.com/hyperledger/fabric-chaincode-go/shim"
 
 // loop an iterator
-func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]interface{}, error)  {
+func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) (res []interface{}, err error)  {
 	defer resultsIterator.Close()
-
-	var res []interface{}
+	
 	for resultsIterator.HasNext(){
 		element, err := resultsIterator.Next()
 		if err != nil {
@@ -21,5 +20,5 @@ func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]inte
 
 		res = append(res, *newObj)
 	}
-	return res, nil
+	return res, err
 }

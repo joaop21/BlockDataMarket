@@ -1,8 +1,6 @@
 package main
 
 import (
-	"dataMarket/utils"
-	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"time"
 )
 
@@ -18,24 +16,11 @@ type Query struct {
 	InsertedAt     time.Time `json:"insertedAt"`
 }
 
-func (q *Query) GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) ([]Query, error) {
-	defer resultsIterator.Close()
-
-	var res []Query
-	var i int
-	for i = 0; resultsIterator.HasNext(); i++ {
-		element, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-
-		newQ := new(Query)
-		err = utils.Deserialize(element.Value, newQ)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, *newQ)
+// Converter of an []interface{} to []Query
+func ConvertToQuery(values []interface{}) (queries []Query) {
+	queries = make([]Query, len(values))
+	for i := range values {
+		queries[i] = values[i].(Query)
 	}
-	return res, nil
+	return queries
 }
