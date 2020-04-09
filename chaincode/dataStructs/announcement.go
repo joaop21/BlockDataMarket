@@ -1,4 +1,4 @@
-package main
+package dataStructs
 
 import (
 	"time"
@@ -17,9 +17,9 @@ type Announcement struct {
 
 // Constructor for Announcement
 func NewAnnouncement(announcementId string, dataId string, ownerId string, queryPrices []float32, categoryName string, insertionDate time.Time) *Announcement {
-	category, err := checkExistence(categoryName)
+	category, err := CheckExistence(categoryName)
 
-	if err != nil || len(queryPrices) != len(category.actions) {
+	if err != nil || len(queryPrices) != len(category.Actions) {
 		return nil
 	}
 
@@ -29,7 +29,7 @@ func NewAnnouncement(announcementId string, dataId string, ownerId string, query
 		DataId:         dataId,
 		OwnerId:        ownerId,
 		QueryPrices:    queryPrices,
-		DataCategory:   category.name,
+		DataCategory:   category.Name,
 		InsertedAt:     insertionDate,
 	}
 }

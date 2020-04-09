@@ -1,4 +1,4 @@
-package main
+package dataStructs
 
 // Identification object that represents an identification in the World State
 type Identification struct {

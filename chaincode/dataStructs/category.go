@@ -1,21 +1,21 @@
-package main
+package dataStructs
 
 import (
-    "errors"
+	"errors"
 )
 
 type Category struct {
-    name    string
-    actions []string
+    Name    string
+    Actions []string
 }
 
 var (
     Mobile = Category{
-        name: "Mobile",
-        actions: []string{"Query1", "Query2"}}
+        Name: "Mobile",
+        Actions: []string{"Query1", "Query2"}}
     Energy = Category{
-        name: "Energy",
-        actions: []string{"Query1", "Query2"}}
+        Name: "Energy",
+        Actions: []string{"Query1", "Query2"}}
 )
 
 var categories = map[string]Category {
@@ -23,7 +23,7 @@ var categories = map[string]Category {
     "Energy": Energy,
 }
 
-func checkExistence(input string) (*Category, error) {
+func CheckExistence(input string) (*Category, error) {
     if value, found := categories[input]; found == false {
         return nil, errors.New("no category available")
     } else {

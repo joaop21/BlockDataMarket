@@ -1,6 +1,7 @@
-package main
+package contracts
 
 import (
+	"dataMarket/dataStructs"
 	"dataMarket/utils"
 	"fmt"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -26,7 +27,7 @@ func (_ *PurchaseContract) MakePurchase(ctx contractapi.TransactionContextInterf
 	// Done by the API
 
 	// create a new Announcement
-	purchase := Purchase{
+	purchase := dataStructs.Purchase{
 		AnnouncementId: announcementId,
 		BuyerId:        buyerId,
 		Value:          value,
@@ -43,7 +44,7 @@ func (_ *PurchaseContract) MakePurchase(ctx contractapi.TransactionContextInterf
 	// test if key already exists
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
-		purch := new (Purchase)
+		purch := new (dataStructs.Purchase)
 		err := utils.Deserialize(obj, purch)
 		if err != nil {
 			return err
@@ -58,7 +59,7 @@ func (_ *PurchaseContract) MakePurchase(ctx contractapi.TransactionContextInterf
 }
 
 // Get all a specific purchase from the world state
-func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterface, announcementId string, buyerId string) (*Purchase, error) {
+func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterface, announcementId string, buyerId string) (*dataStructs.Purchase, error) {
 	key, _ := ctx.GetStub().CreateCompositeKey("Purchase", []string{
 		announcementId,
 		buyerId,
@@ -68,7 +69,7 @@ func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterfa
 		return nil, err
 	}
 
-	purchase := new (Purchase)
+	purchase := new (dataStructs.Purchase)
 	err = utils.Deserialize(purchaseAsBytes, purchase)
         if err != nil {
             return nil, err
@@ -78,7 +79,7 @@ func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterfa
 }
 
 // Get all existing Purchases from one Announcement on world state that match with the arguments
-func (_ *PurchaseContract) GetAnnouncementPurchases(ctx contractapi.TransactionContextInterface, announcementId string) ([]Purchase, error) {
+func (_ *PurchaseContract) GetAnnouncementPurchases(ctx contractapi.TransactionContextInterface, announcementId string) ([]dataStructs.Purchase, error) {
 
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Purchase", []string{
@@ -90,7 +91,7 @@ func (_ *PurchaseContract) GetAnnouncementPurchases(ctx contractapi.TransactionC
 	}
 	defer resultsIterator.Close()
 
-	var res []Purchase
+	var res []dataStructs.Purchase
 	var i int
 	for i = 0; resultsIterator.HasNext(); i++ {
 		element, err := resultsIterator.Next()
@@ -98,7 +99,7 @@ func (_ *PurchaseContract) GetAnnouncementPurchases(ctx contractapi.TransactionC
 			return nil, err
 		}
 
-		newPurch := new(Purchase)
+		newPurch := new(dataStructs.Purchase)
 		err = utils.Deserialize(element.Value, newPurch)
 		if err != nil {
 			return nil, err
@@ -110,15 +111,15 @@ func (_ *PurchaseContract) GetAnnouncementPurchases(ctx contractapi.TransactionC
 	return res, nil
 }
 
-func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorInterface) ([]Purchase, error) {
-	var results []Purchase
+func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorInterface) ([]dataStructs.Purchase, error) {
+	var results []dataStructs.Purchase
 	for resultsIterator.HasNext() {
 		element, err := resultsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
 
-		newPurch := new(Purchase)
+		newPurch := new(dataStructs.Purchase)
 		err = utils.Deserialize(element.Value, newPurch)
 		if err != nil {
 			return nil, err
@@ -129,7 +130,7 @@ func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorI
 	return results, nil
 }
 
-func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString string) ([]Purchase, error) {
+func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString string) ([]dataStructs.Purchase, error) {
 
 	resultsIterator, err := stub.GetQueryResult(queryString)
 	if err != nil {
@@ -146,7 +147,7 @@ func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString 
 }
 
 // Get all existing Purchases from one buyer on world state that match with the arguments
-func (_ *PurchaseContract) GetBuyerPurchases(ctx contractapi.TransactionContextInterface, buyerId string) ([]Purchase, error) {
+func (_ *PurchaseContract) GetBuyerPurchases(ctx contractapi.TransactionContextInterface, buyerId string) ([]dataStructs.Purchase, error) {
 	
 	queryString := fmt.Sprintf("{\"selector\":{\"buyerId\":\"%s\"}}", buyerId)
 
