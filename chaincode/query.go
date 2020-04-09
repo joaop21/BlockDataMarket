@@ -15,12 +15,3 @@ type Query struct {
 	Response       string    `json:"Response"`
 	InsertedAt     time.Time `json:"insertedAt"`
 }
-
-// Converter of an []interface{} to []Query
-func ConvertToQuery(values []interface{}) (queries []*Query) {
-	queries = make([]*Query, len(values))
-	for i := range values {
-		queries[i] = values[i].(*Query)
-	}
-	return queries
-}

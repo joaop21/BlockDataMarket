@@ -4,6 +4,7 @@ import (
 	"dataMarket/utils"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"time"
 )
@@ -60,8 +61,7 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	query := new(Query)
-	values, err := utils.GetIteratorValues(resultsIterator, new(Query))
-	results = ConvertToQuery(values)
+	results, err = getQueries(resultsIterator)
 	if err != nil {
 		return err
 	}
@@ -86,15 +86,12 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 
 // Get queries made to an announcement
 func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) ([]*Query, error) {
-
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Query", []string{announcementId,})
 	if err != nil {
 		return nil, err
 	}
-	values, err := utils.GetIteratorValues(resultsIterator, new(Query))
-	res := ConvertToQuery(values)
-	return res, nil
+	return getQueries(resultsIterator)
 }
 
 // Get query by its id
@@ -125,7 +122,26 @@ func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInt
 	if err != nil {
 		return nil, err
 	}
+	return getQueries(resultsIterator)
+}
+
+// Auxiliary function for repeating code
+func getQueries(resultsIterator shim.StateQueryIteratorInterface) ([]*Query, error) {
+	// Iterate values received
 	values, err := utils.GetIteratorValues(resultsIterator, new(Query))
-	res := ConvertToQuery(values)
-	return res, nil
+	if err != nil {
+		return nil, err
+	}
+	// Convert to a []Announcement
+	queries := convertToQuery(values)
+	return queries, err
+}
+
+// Converter of an []interface{} to []Query
+func convertToQuery(values []interface{}) (queries []*Query) {
+	queries = make([]*Query, len(values))
+	for i := range values {
+		queries[i] = values[i].(*Query)
+	}
+	return queries
 }
