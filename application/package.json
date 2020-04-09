@@ -1,5 +1,5 @@
 {
-  "name": "node",
+  "name": "BlockDataMarket",
   "version": "1.0.0",
   "description": "BlockDataMarket application implemented in JavaScript",
   "engines": {
@@ -9,15 +9,21 @@
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
-    "test": "nyc mocha --recursive"
+    "test": "nyc mocha --recursive",
+    "start": "node ./bin/www"
   },
   "engineStrict": true,
   "author": "Hyperledger",
   "license": "Apache-2.0",
   "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
     "fabric-ca-client": "beta",
     "fabric-network": "beta",
+    "http-errors": "~1.6.3",
     "mongodb": "^3.5.5",
+    "morgan": "~1.9.1",
     "uuid": "^7.0.3"
   },
   "devDependencies": {
