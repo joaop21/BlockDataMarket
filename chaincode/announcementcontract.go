@@ -54,7 +54,7 @@ func (_ *AnnouncementContract) GetAnnouncement(ctx contractapi.TransactionContex
 		return nil, err
 	}
 
-	results, err := utils.GetIteratorValues(resultsIterator)
+	results, err := utils.GetIteratorValues(resultsIterator, new(Announcement))
 	if err != nil {
 		return nil, err
 	}	
@@ -74,7 +74,7 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 	}
 
 	// Iterate values received
-	values, err := utils.GetIteratorValues(resultsIterator)
+	values, err := utils.GetIteratorValues(resultsIterator, new(Announcement))
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.Transa
 		return nil, err
 	}
 	// Iterate values received
-	values, err := utils.GetIteratorValues(resultsIterator)
+	values, err := utils.GetIteratorValues(resultsIterator, new(Announcement))
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 		return nil, err
 	}
 	// Iterate values received
-	values, err := utils.GetIteratorValues(resultsIterator)
+	values, err := utils.GetIteratorValues(resultsIterator, new(Announcement))
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.Transac
 		return nil, err
 	}
 	// Iterate values received
-	values, err := utils.GetIteratorValues(resultsIterator)
+	values, err := utils.GetIteratorValues(resultsIterator, new(Announcement))
 	if err != nil {
 		return nil, err
 	}

@@ -3,7 +3,7 @@ package utils
 import "github.com/hyperledger/fabric-chaincode-go/shim"
 
 // loop an iterator
-func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) (res []interface{}, err error)  {
+func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface, obj interface{}) (res []interface{}, err error)  {
 	defer resultsIterator.Close()
 	
 	for resultsIterator.HasNext(){
@@ -12,13 +12,13 @@ func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface) (res []
 			return nil, err
 		}
 
-		newObj := new(interface{})
+		newObj := obj
 		err = Deserialize(element.Value, newObj)
 		if err != nil {
 			return nil, err
 		}
 
-		res = append(res, *newObj)
+		res = append(res, newObj)
 	}
 	return res, err
 }

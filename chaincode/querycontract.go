@@ -60,7 +60,7 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	query := new(Query)
-	values, err := utils.GetIteratorValues(resultsIterator)
+	values, err := utils.GetIteratorValues(resultsIterator, new(Query))
 	results = ConvertToQuery(values)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionCont
 	if err != nil {
 		return nil, err
 	}
-	values, err := utils.GetIteratorValues(resultsIterator)
+	values, err := utils.GetIteratorValues(resultsIterator, new(Query))
 	res := ConvertToQuery(values)
 	return res, nil
 }
@@ -106,7 +106,7 @@ func (_ *QueryContract) GetQuery(ctx contractapi.TransactionContextInterface,
 	if err != nil {
 		return nil, err
 	}
-	results, err := utils.GetIteratorValues(resultsIterator)
+	results, err := utils.GetIteratorValues(resultsIterator, new(Query))
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInt
 	if err != nil {
 		return nil, err
 	}
-	values, err := utils.GetIteratorValues(resultsIterator)
+	values, err := utils.GetIteratorValues(resultsIterator, new(Query))
 	res := ConvertToQuery(values)
 	return res, nil
 }
