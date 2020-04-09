@@ -66,7 +66,7 @@ func (_ *AnnouncementContract) GetAnnouncement(ctx contractapi.TransactionContex
 }
 
 // Get all existing Announcements on world state
-func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionContextInterface) ([]Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionContextInterface) ([]*Announcement, error) {
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{})
 	if err != nil {
@@ -86,7 +86,7 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 }
 
 // Get all Announcements for a category
-func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.TransactionContextInterface, categoryName string) ([]Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.TransactionContextInterface, categoryName string) ([]*Announcement, error) {
 
 	// check if category is available
 	category, err := checkExistence(categoryName)
@@ -112,7 +112,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.Transa
 }
 
 // Get all Announcements for an owner
-func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.TransactionContextInterface, ownerId string) ([]Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.TransactionContextInterface, ownerId string) ([]*Announcement, error) {
 
 	queryString := fmt.Sprintf("{\"selector\":{\"ownerId\":\"%s\"}}", ownerId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
@@ -132,7 +132,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 }
 
 // Get all Announcements lower than a value
-func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface, value float32) ([]Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface, value float32) ([]*Announcement, error) {
 
 	queryString := fmt.Sprintf("{\"selector\": {\"prices\": {\"$elemMatch\": {\"$lte\": %f}}}}", value)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)

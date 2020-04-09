@@ -35,10 +35,10 @@ func NewAnnouncement(announcementId string, dataId string, ownerId string, query
 }
 
 // Converter of an []interface{} to []Announcement
-func ConvertToAnnouncement(values []interface{}) (announcements []Announcement) {
-	announcements = make([]Announcement, len(values))
+func ConvertToAnnouncement(values []interface{}) (announcements []*Announcement) {
+	announcements = make([]*Announcement, len(values))
 	for i := range values {
-		announcements[i] = values[i].(Announcement)
+		announcements[i] = values[i].(*Announcement)
 	}
 	return announcements
 }

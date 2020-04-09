@@ -53,7 +53,7 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, a
 // Adds a new Query to world state
 func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface, queryid string, response string) error {
 
-	var results []Query
+	var results []*Query
 	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryid)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
@@ -69,7 +69,7 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("Query doesn't exists")
 	}
 
-	query = &(results[0])
+	query = results[0]
 	query.Response = response
 	var queryAsBytes []byte
 	queryAsBytes, _ = utils.Serialize(query)
@@ -85,7 +85,7 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 }
 
 // Get queries made to an announcement
-func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) ([]Query, error) {
+func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) ([]*Query, error) {
 
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Query", []string{announcementId,})
@@ -119,7 +119,7 @@ func (_ *QueryContract) GetQuery(ctx contractapi.TransactionContextInterface,
 
 
 // Get queries made to an announcement by an issuer
-func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInterface, issuerId string) ([]Query, error) {
+func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInterface, issuerId string) ([]*Query, error) {
 	queryString := fmt.Sprintf("{\"selector\":{\"issuerId\":\"%s\"}}", issuerId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {

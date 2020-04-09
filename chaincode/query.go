@@ -17,10 +17,10 @@ type Query struct {
 }
 
 // Converter of an []interface{} to []Query
-func ConvertToQuery(values []interface{}) (queries []Query) {
-	queries = make([]Query, len(values))
+func ConvertToQuery(values []interface{}) (queries []*Query) {
+	queries = make([]*Query, len(values))
 	for i := range values {
-		queries[i] = values[i].(Query)
+		queries[i] = values[i].(*Query)
 	}
 	return queries
 }
