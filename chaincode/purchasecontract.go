@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./utils"
 	"fmt"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -33,7 +34,7 @@ func (_ *PurchaseContract) MakePurchase(ctx contractapi.TransactionContextInterf
 	}
 
 	// create a composite key
-	purchaseAsBytes, _ := purchase.Serialize()
+	purchaseAsBytes, _ := utils.Serialize(purchase)
 	key, _ := ctx.GetStub().CreateCompositeKey("Purchase", []string{
 		purchase.AnnouncementId,
 		purchase.BuyerId,
@@ -43,7 +44,7 @@ func (_ *PurchaseContract) MakePurchase(ctx contractapi.TransactionContextInterf
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
 		purch := new (Purchase)
-		err := purch.Deserialize(obj)
+		err := utils.Deserialize(obj, purch)
 		if err != nil {
 			return err
 		}
@@ -68,7 +69,7 @@ func (_ *PurchaseContract) GetPurchase(ctx contractapi.TransactionContextInterfa
 	}
 
 	purchase := new (Purchase)
-	err = purchase.Deserialize(purchaseAsBytes)
+	err = utils.Deserialize(purchaseAsBytes, purchase)
         if err != nil {
             return nil, err
         }
@@ -98,7 +99,7 @@ func (_ *PurchaseContract) GetAnnouncementPurchases(ctx contractapi.TransactionC
 		}
 
 		newPurch := new(Purchase)
-		err = newPurch.Deserialize(element.Value)
+		err = utils.Deserialize(element.Value, newPurch)
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +119,7 @@ func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorI
 		}
 
 		newPurch := new(Purchase)
-		err = newPurch.Deserialize(element.Value)
+		err = utils.Deserialize(element.Value, newPurch)
 		if err != nil {
 			return nil, err
 		}

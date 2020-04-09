@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./utils"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -27,7 +28,7 @@ func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionC
         PublicKey:   publicKey,
 	}
 	
-	identificationAsBytes, _ := identification.Serialize()
+	identificationAsBytes, _ := utils.Serialize(identification)
 	key, _ := ctx.GetStub().CreateCompositeKey("Identification", []string{
 		identification.Id,
 	})
@@ -53,7 +54,7 @@ func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionCo
 	}
 
 	identification := new (Identification)
-	err = identification.Deserialize(identificationAsBytes)
+	err = utils.Deserialize(identificationAsBytes, identification)
         if err != nil {
             return nil, err
         }

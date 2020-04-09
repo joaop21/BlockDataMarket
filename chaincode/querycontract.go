@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./utils"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -32,7 +33,7 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, a
 	}
 
 	// create a composite key
-	queryAsBytes, _ := query.Serialize()
+	queryAsBytes, _ := utils.Serialize(query)
 	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
 		query.AnnouncementId,
 		query.IssuerId,
@@ -70,7 +71,7 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 	query = &(results[0])
 	query.Response = response
 	var queryAsBytes []byte
-	queryAsBytes, _ = query.Serialize()
+	queryAsBytes, _ = utils.Serialize(query)
 
 	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
                 query.AnnouncementId,
@@ -101,7 +102,7 @@ func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionCont
 		}
 
 		newQuery := new(Query)
-		err = newQuery.Deserialize(element.Value)
+		err = utils.Deserialize(element.Value, newQuery)
 		if err != nil {
 			return nil, err
 		}
@@ -154,7 +155,7 @@ func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInt
 		}
 
 		newQuery := new(Query)
-		err = newQuery.Deserialize(element.Value)
+		err = utils.Deserialize(element.Value, newQuery)
 		if err != nil {
 			return nil, err
 		}

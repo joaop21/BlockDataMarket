@@ -1,11 +1,11 @@
 package main
 
 import (
+	"./utils"
 	"fmt"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"time"
 )
 
 type AnnouncementContract struct {
@@ -28,7 +28,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 	}
 
 	// create a composite key
-	announcementAsBytes, _ := announcement.Serialize()
+	announcementAsBytes, _ := utils.Serialize(announcement)
 	key, _ := ctx.GetStub().CreateCompositeKey("Announcement", []string{
 		announcement.DataCategory,
 		announcement.OwnerId,

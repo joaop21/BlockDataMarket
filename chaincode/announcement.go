@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"time"
 )
@@ -35,22 +33,6 @@ func NewAnnouncement(announcementId string, dataId string, ownerId string, query
 		DataCategory:   category.name,
 		InsertedAt:     insertionDate,
 	};
-}
-
-// Serialize formats the Announcement as JSON bytes
-func (ann *Announcement) Serialize() ([]byte, error) {
-	return json.Marshal(ann)
-}
-
-// Deserialize formats the Announcement from JSON bytes
-func (ann *Announcement) Deserialize(bytes []byte) error {
-	err := json.Unmarshal(bytes, ann)
-
-	if err != nil {
-		return fmt.Errorf("error deserializing Announcement. %s", err.Error())
-	}
-
-	return nil
 }
 
 // loop an iterator
