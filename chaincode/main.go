@@ -1,20 +1,21 @@
 package main
 
 import (
+	"dataMarket/contracts"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
 func main() {
-	announcementContract := new(AnnouncementContract)
+	announcementContract := new(contracts.AnnouncementContract)
 	announcementContract.Name = "AnnouncementContract"
 
-	identificationContract := new(IdentificationContract)
+	identificationContract := new(contracts.IdentificationContract)
 	identificationContract.Name = "IdentificationContract"
 
-	purchaseContract := new(PurchaseContract)
+	purchaseContract := new(contracts.PurchaseContract)
 	purchaseContract.Name = "PurchaseContract"
 
-	queryContract := new(QueryContract)
+	queryContract := new(contracts.QueryContract)
 	queryContract.Name = "QueryContract"
 
 	chaincode, err := contractapi.NewChaincode(announcementContract, identificationContract, purchaseContract, queryContract)

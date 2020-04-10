@@ -1,6 +1,8 @@
-package main
+package contracts
 
 import (
+	"dataMarket/dataStructs"
+	"dataMarket/utils"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -19,7 +21,7 @@ func (_ *IdentificationContract) Instantiate(_ contractapi.TransactionContextInt
 func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionContextInterface, name string, ip string, publicKey string) error {
 	
 	// create a new Identification
-    identification := Identification{
+    identification := dataStructs.Identification{
 		Type:        "Identification",
 		Id: 	     uuid.New().String(),
         Name:        name,
@@ -27,7 +29,7 @@ func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionC
         PublicKey:   publicKey,
 	}
 	
-	identificationAsBytes, _ := identification.Serialize()
+	identificationAsBytes, _ := utils.Serialize(identification)
 	key, _ := ctx.GetStub().CreateCompositeKey("Identification", []string{
 		identification.Id,
 	})
@@ -42,7 +44,7 @@ func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionC
 }
 
 // Get all existing Identification on world state 
-func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionContextInterface, id string) (*Identification, error) {
+func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionContextInterface, id string) (*dataStructs.Identification, error) {
 
 	key, _ := ctx.GetStub().CreateCompositeKey("Identification", []string{
 		id,
@@ -52,8 +54,8 @@ func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionCo
 		return nil, err
 	}
 
-	identification := new (Identification)
-	err = identification.Deserialize(identificationAsBytes)
+	identification := new (dataStructs.Identification)
+	err = utils.Deserialize(identificationAsBytes, identification)
         if err != nil {
             return nil, err
         }

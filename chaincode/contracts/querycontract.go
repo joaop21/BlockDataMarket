@@ -1,8 +1,11 @@
-package main
+package contracts
 
 import (
+	"dataMarket/dataStructs"
+	"dataMarket/utils"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"time"
 )
@@ -20,7 +23,7 @@ func (_ *QueryContract) Instantiate(_ contractapi.TransactionContextInterface) e
 func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, announcementId string, issuerId string, queryArg string, price float32) error {
 
 	// create a new Announcement
-	query := Query{
+	query := dataStructs.Query{
 		Type:			"Query",
 		QueryId:        uuid.New().String(),
 		AnnouncementId: announcementId,
@@ -32,7 +35,7 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, a
 	}
 
 	// create a composite key
-	queryAsBytes, _ := query.Serialize()
+	queryAsBytes, _ := utils.Serialize(query)
 	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
 		query.AnnouncementId,
 		query.IssuerId,
@@ -51,15 +54,15 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, a
 
 // Adds a new Query to world state
 func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface, queryid string, response string) error {
-	
-	var results []Query
+
+	var results []*dataStructs.Query
 	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryid)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return err
 	}
-	query := new(Query)
-	results, err = query.GetIteratorValues(resultsIterator)
+	query := new(dataStructs.Query)
+	results, err = getQueries(resultsIterator)
 	if err != nil {
 		return err
 	}
@@ -67,10 +70,10 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("Query doesn't exists")
 	}
 
-	query = &(results[0])
+	query = results[0]
 	query.Response = response
 	var queryAsBytes []byte
-	queryAsBytes, _ = query.Serialize()
+	queryAsBytes, _ = utils.Serialize(query)
 
 	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
                 query.AnnouncementId,
@@ -83,46 +86,25 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 }
 
 // Get queries made to an announcement
-func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) ([]Query, error) {
-
+func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) ([]*dataStructs.Query, error) {
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Query", []string{announcementId,})
 	if err != nil {
 		return nil, err
 	}
-	defer resultsIterator.Close()
-
-	var res []Query
-	var i int
-	for i = 0; resultsIterator.HasNext(); i++ {
-		element, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-
-		newQuery := new(Query)
-		err = newQuery.Deserialize(element.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, *newQuery)
-	}
-	return res, nil
+	return getQueries(resultsIterator)
 }
 
 // Get query by its id
 func (_ *QueryContract) GetQuery(ctx contractapi.TransactionContextInterface,
-	queryId string) (*Query, error) {
+	queryId string) (*dataStructs.Query, error) {
 
-	var results []Query
 	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
 	}
-	query := new(Query)
-	results, err = query.GetIteratorValues(resultsIterator)
+	results, err := utils.GetIteratorValues(resultsIterator, new(dataStructs.Query))
 	if err != nil {
 		return nil, err
 	}
@@ -130,36 +112,37 @@ func (_ *QueryContract) GetQuery(ctx contractapi.TransactionContextInterface,
 		return nil, fmt.Errorf("Query doesn't exists")
 	}
 
-	return &(results[0]), nil
+	return results[0].(*dataStructs.Query), nil
 }
 
 
 // Get queries made to an announcement by an issuer
-func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInterface,
-	issuerId string) ([]Query, error) {
-
+func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInterface, issuerId string) ([]*dataStructs.Query, error) {
 	queryString := fmt.Sprintf("{\"selector\":{\"issuerId\":\"%s\"}}", issuerId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
 	}
-	defer resultsIterator.Close()
+	return getQueries(resultsIterator)
+}
 
-	var res []Query
-	var i int
-	for i = 0; resultsIterator.HasNext(); i++ {
-		element, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-
-		newQuery := new(Query)
-		err = newQuery.Deserialize(element.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, *newQuery)
+// Auxiliary function for repeating code
+func getQueries(resultsIterator shim.StateQueryIteratorInterface) ([]*dataStructs.Query, error) {
+	// Iterate values received
+	values, err := utils.GetIteratorValues(resultsIterator, new(dataStructs.Query))
+	if err != nil {
+		return nil, err
 	}
-	return res, nil
+	// Convert to a []Announcement
+	queries := convertToQuery(values)
+	return queries, err
+}
+
+// Converter of an []interface{} to []Query
+func convertToQuery(values []interface{}) (queries []*dataStructs.Query) {
+	queries = make([]*dataStructs.Query, len(values))
+	for i := range values {
+		queries[i] = values[i].(*dataStructs.Query)
+	}
+	return queries
 }
