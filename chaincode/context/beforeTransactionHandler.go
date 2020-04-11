@@ -4,18 +4,12 @@ import (
 	"dataMarket/dataStructs"
 	"dataMarket/utils"
 	"errors"
-	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
 )
 
 // Function for searching identities before the transaction happens
 func SearchIdentitiesHandler(ctx TransactionContextInterface) error {
-	// New returns an instance of ClientID
-	cliId, err := cid.New(ctx.GetStub())
-	if err != nil {
-		return errors.New("error initializing client identity")
-	}
 	// GetID returns a unique ID associated with the invoking identity.
-	id, err := cliId.GetID()
+	id, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return errors.New("error getting ID from client identity")
 	}
