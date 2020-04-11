@@ -56,9 +56,9 @@ func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionCo
 
 	identification := new (dataStructs.Identification)
 	err = utils.Deserialize(identificationAsBytes, identification)
-        if err != nil {
-            return nil, err
-        }
+	if err != nil {
+        return nil, err
+    }
 
     return identification, nil
 }
