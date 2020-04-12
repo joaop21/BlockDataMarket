@@ -3,15 +3,15 @@
 const { Gateway, Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
-const database = require('./database')
+const database = require('./database');
 
 
 async function makeAnnouncement(contract, filename, ownerId, prices, category){
     //check if owner exists
     const owner = await contract.submitTransaction('IdentificationContract:GetIdentification', ownerId);
 	if(owner){
-        const dataId = await database.putContent(filename)
-        console.log(dataId + " " + ownerId + " " + prices + " " + category)
+        const dataId = await database.putContent(filename);
+        console.log(dataId + " " + ownerId + " " + prices + " " + category);
 	return (await contract.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, ownerId, prices, category));
     }else{
         return "Erro: OwnerId não existe, registe-se";
@@ -112,12 +112,15 @@ async function main() {
         const contract = network.getContract('dataMarket');
 
         // accept args from stdin
-        var args = process.argv.slice(2);
+        const args = process.argv.slice(2);
         let result = null;
         // submit transaction depending on first arg
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
-                result = await makeAnnouncement(contract, args[1], args[2], args[3], args[4]);
+                //result = await makeAnnouncement(contract, args[1], args[2], args[3], args[4]);
+                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
+                const dataId = await database.putContent(args[1]);
+                console.log(dataId + " " + args[2] + " " + args[3] + " " + args[4]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);
@@ -132,10 +135,12 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'QueryContract:MakeQuery':
-                result = await makeQuery(contract, args[1], args[2], args[3], args[4]);
+                //result = await makeQuery(contract, args[1], args[2], args[3], args[4]);
+                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
                 break;
             case 'QueryContract:PutResponse':
-                result = await putResponse(contract, args[1]);
+                //result = await putResponse(contract, args[1]);
+                result = await contract.submitTransaction(args[0], args[1], args[2]);
                 break;
             case 'QueryContract:GetQueriesByAnnouncement':
                 result = await contract.submitTransaction(args[0], args[1]);
