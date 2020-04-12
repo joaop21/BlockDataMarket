@@ -1,10 +1,11 @@
 package contracts
 
 import (
+	"dataMarket/context"
 	"dataMarket/dataStructs"
 	"dataMarket/utils"
+	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -13,17 +14,21 @@ type IdentificationContract struct {
 }
 
 // Instantiate does nothing
-func (_ *IdentificationContract) Instantiate(_ contractapi.TransactionContextInterface) error {
+func (_ *IdentificationContract) Instantiate(_ context.TransactionContextInterface) error {
     return nil
 }
 
 // Adds a new Identification to be sell, to the world state with given details
-func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionContextInterface, name string, ip string, publicKey string) error {
-	
+func (_ *IdentificationContract) MakeIdentification(ctx context.TransactionContextInterface, name string, ip string, publicKey string) error {
+
+	if ctx.GetIdentification() != nil {
+		return errors.New("submitter already exists")
+	}
+
 	// create a new Identification
     identification := dataStructs.Identification{
 		Type:        "Identification",
-		Id: 	     uuid.New().String(),
+		Id: 	     ctx.GetUniqueIdentity(),
         Name:        name,
         Ip:          ip,
         PublicKey:   publicKey,
@@ -44,7 +49,7 @@ func (_ *IdentificationContract) MakeIdentification(ctx contractapi.TransactionC
 }
 
 // Get all existing Identification on world state 
-func (_ *IdentificationContract) GetIdentification(ctx contractapi.TransactionContextInterface, id string) (*dataStructs.Identification, error) {
+func (_ *IdentificationContract) GetIdentification(ctx context.TransactionContextInterface, id string) (*dataStructs.Identification, error) {
 
 	key, _ := ctx.GetStub().CreateCompositeKey("Identification", []string{
 		id,

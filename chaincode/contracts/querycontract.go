@@ -1,8 +1,10 @@
 package contracts
 
 import (
+	"dataMarket/context"
 	"dataMarket/dataStructs"
 	"dataMarket/utils"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -15,19 +17,24 @@ type QueryContract struct {
 }
 
 // Instantiate does nothing
-func (_ *QueryContract) Instantiate(_ contractapi.TransactionContextInterface) error {
+func (_ *QueryContract) Instantiate(_ context.TransactionContextInterface) error {
 	return nil
 }
 
 // Adds a new Query to world state
-func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, announcementId string, issuerId string, queryArg string, price float32) error {
+func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, announcementId string, queryArg string, price float32) error {
+
+	identification := ctx.GetIdentification()
+	if identification == nil {
+		return errors.New("the submitter has no identification")
+	}
 
 	// create a new Announcement
 	query := dataStructs.Query{
 		Type:			"Query",
 		QueryId:        uuid.New().String(),
 		AnnouncementId: announcementId,
-		IssuerId:       issuerId,
+		IssuerId:       ctx.GetIdentification().Id,
 		Price:			price,
 		Query:          queryArg,
 		Response:   	"",
@@ -53,10 +60,15 @@ func (_ *QueryContract) MakeQuery(ctx contractapi.TransactionContextInterface, a
 
 
 // Adds a new Query to world state
-func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface, queryid string, response string) error {
+func (_ *QueryContract) PutResponse(ctx context.TransactionContextInterface, queryId string, response string) error {
+
+	identification := ctx.GetIdentification()
+	if identification == nil {
+		return errors.New("the submitter has no identification")
+	}
 
 	var results []*dataStructs.Query
-	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryid)
+	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return err
@@ -71,22 +83,30 @@ func (_ *QueryContract) PutResponse(ctx contractapi.TransactionContextInterface,
 	}
 
 	query = results[0]
+	// check the submitter identity
+	announcement, err := new(AnnouncementContract).GetAnnouncement(ctx, query.AnnouncementId)
+	if err != nil {
+		return err
+	}
+	if announcement.OwnerId != identification.Id {
+		return errors.New("the submitter isn't the announcement owner. He can't respond")
+	}
+
 	query.Response = response
 	var queryAsBytes []byte
 	queryAsBytes, _ = utils.Serialize(query)
 
 	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
-                query.AnnouncementId,
-                query.IssuerId,
-                query.QueryId,
-        })
-
+    	query.AnnouncementId,
+        query.IssuerId,
+        query.QueryId,
+	})
 
 	return ctx.GetStub().PutState(key, queryAsBytes)
 }
 
 // Get queries made to an announcement
-func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) ([]*dataStructs.Query, error) {
+func (_ *QueryContract) GetQueriesByAnnouncement(ctx context.TransactionContextInterface, announcementId string) ([]*dataStructs.Query, error) {
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Query", []string{announcementId,})
 	if err != nil {
@@ -96,8 +116,7 @@ func (_ *QueryContract) GetQueriesByAnnouncement(ctx contractapi.TransactionCont
 }
 
 // Get query by its id
-func (_ *QueryContract) GetQuery(ctx contractapi.TransactionContextInterface,
-	queryId string) (*dataStructs.Query, error) {
+func (_ *QueryContract) GetQuery(ctx context.TransactionContextInterface, queryId string) (*dataStructs.Query, error) {
 
 	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
@@ -117,7 +136,7 @@ func (_ *QueryContract) GetQuery(ctx contractapi.TransactionContextInterface,
 
 
 // Get queries made to an announcement by an issuer
-func (_ *QueryContract) GetQueriesByIssuer(ctx contractapi.TransactionContextInterface, issuerId string) ([]*dataStructs.Query, error) {
+func (_ *QueryContract) GetQueriesByIssuer(ctx context.TransactionContextInterface, issuerId string) ([]*dataStructs.Query, error) {
 	queryString := fmt.Sprintf("{\"selector\":{\"issuerId\":\"%s\"}}", issuerId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
