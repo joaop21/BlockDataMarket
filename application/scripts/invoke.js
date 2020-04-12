@@ -118,8 +118,8 @@ async function main() {
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
                 //result = await makeAnnouncement(contract, args[1], args[2], args[3], args[4]);
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
                 const dataId = await database.putContent(args[1]);
+                result = await contract.submitTransaction(args[0], dataId, args[2], args[3]);
                 console.log(dataId + " " + args[2] + " " + args[3] + " " + args[4]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
