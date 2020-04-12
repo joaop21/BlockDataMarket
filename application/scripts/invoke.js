@@ -45,7 +45,7 @@ async function getResponse(dataId, level){
 }
 
 
-async function putResponse(contract, queryid){
+async function putResponse(funcName, queryid){
     const query = await contract.submitTransaction('QueryContract:GetQuery',queryid);
     if(query){
         const queryJson = JSON.parse(query);
@@ -58,7 +58,7 @@ async function putResponse(contract, queryid){
         const index = prices.findIndex( (price) => price === queryJson.price);
         if(index !== -1){
             const response = await getResponse(announcementJson.dataId, index+1); 
-	    return await contract.submitTransaction('QueryContract:PutResponse',queryid, response);
+	    return await contract.submitTransaction(funcName, queryid, response);
         }else{
             return "Offer declined, price didn't match any of the levels"
         }
@@ -124,7 +124,7 @@ async function main() {
                 result = await makeQuery(args[0], args[1], args[2], args[3]);
                 break;
             case 'QueryContract:PutResponse':
-                result = await putResponse(contract, args[1]);
+                result = await putResponse(args[0], args[1]);
                 break;
             case 'QueryContract:GetQueriesByAnnouncement':
                 result = await contract.submitTransaction(args[0], args[1]);
