@@ -56,14 +56,10 @@ async function putResponse(funcName, queryid){
         
         const prices = announcementJson.prices; 
         const index = prices.findIndex( (price) => price === queryJson.price);
-        if(index !== -1){
-            const response = await getResponse(announcementJson.dataId, index+1); 
-	    return await contract.submitTransaction(funcName, queryid, response);
-        }else{
-            return "Offer declined, price didn't match any of the levels"
-        }
-
-
+        const response = index !== -1
+            ? await getResponse(announcementJson.dataId, index + 1)
+            : "Offer declined, price didn't match any of the levels";
+        return await contract.submitTransaction(funcName, queryid, response);
     }else{
         return "Error: Query doesn't exist"
     }
