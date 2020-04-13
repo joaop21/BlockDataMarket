@@ -1,8 +1,10 @@
 package contracts
 
 import (
+	"dataMarket/context"
 	"dataMarket/dataStructs"
 	"dataMarket/utils"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -15,15 +17,20 @@ type AnnouncementContract struct {
 }
 
 // Instantiate does nothing
-func (_ *AnnouncementContract) Instantiate(_ contractapi.TransactionContextInterface) error {
+func (_ *AnnouncementContract) Instantiate(_ context.TransactionContextInterface) error {
 	return nil
 }
 
 // Adds a new Announcement to be sell, to the world state with given details
-func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionContextInterface, dataId string, ownerId string, prices []float32, categoryName string) error {
+func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextInterface, dataId string, prices []float32, categoryName string) error {
+
+	identification := ctx.GetIdentification()
+	if identification == nil {
+		return errors.New("the submitter has no identification")
+	}
 
 	// create a new Announcement
-	announcement := dataStructs.NewAnnouncement(uuid.New().String(), dataId, ownerId, prices, categoryName, time.Now())
+	announcement := dataStructs.NewAnnouncement(uuid.New().String(), dataId, ctx.GetIdentification().Id, prices, categoryName, time.Now())
 
 	if announcement == nil {
 		return fmt.Errorf("Error creating announcement")
@@ -47,7 +54,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx contractapi.TransactionConte
 }
 
 // Get Announcement on world state by id
-func (_ *AnnouncementContract) GetAnnouncement(ctx contractapi.TransactionContextInterface, announcementId string) (*dataStructs.Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncement(ctx context.TransactionContextInterface, announcementId string) (*dataStructs.Announcement, error) {
 
 	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Announcement\",\"announcementId\":\"%s\"}}", announcementId)
 
@@ -68,7 +75,7 @@ func (_ *AnnouncementContract) GetAnnouncement(ctx contractapi.TransactionContex
 }
 
 // Get all existing Announcements on world state
-func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionContextInterface) ([]*dataStructs.Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncements(ctx context.TransactionContextInterface) ([]*dataStructs.Announcement, error) {
 	// get all the keys that match with args
 	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{})
 	if err != nil {
@@ -78,7 +85,7 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx contractapi.TransactionConte
 }
 
 // Get all Announcements for a category
-func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.TransactionContextInterface, categoryName string) ([]*dataStructs.Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx context.TransactionContextInterface, categoryName string) ([]*dataStructs.Announcement, error) {
 	// check if category is available
 	category, err := dataStructs.CheckExistence(categoryName)
 	if err != nil {
@@ -93,7 +100,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx contractapi.Transa
 }
 
 // Get all Announcements for an owner
-func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.TransactionContextInterface, ownerId string) ([]*dataStructs.Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx context.TransactionContextInterface, ownerId string) ([]*dataStructs.Announcement, error) {
 	queryString := fmt.Sprintf("{\"selector\":{\"ownerId\":\"%s\"}}", ownerId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
@@ -103,7 +110,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx contractapi.Transacti
 }
 
 // Get all Announcements lower than a value
-func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx contractapi.TransactionContextInterface, value float32) ([]*dataStructs.Announcement, error) {
+func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx context.TransactionContextInterface, value float32) ([]*dataStructs.Announcement, error) {
 	queryString := fmt.Sprintf("{\"selector\": {\"prices\": {\"$elemMatch\": {\"$lte\": %f}}}}", value)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
