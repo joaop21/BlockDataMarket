@@ -147,4 +147,11 @@ async function main() {
     }
 }
 
-main();
+main().then(()=>{
+    console.log('done');
+}).catch((e)=>{
+    console.log('Final error checking.......');
+    console.log(e);
+    console.log(e.stack);
+    process.exit(-1);
+});
