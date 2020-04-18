@@ -15,11 +15,12 @@ async function makeAnnouncement(funcName, filename, prices, category){
         const eventName = 'Query:' + announcementId;
             const listener = async (event) => {
             if (event.eventName === eventName) {
-                console.log('evento apanhado'+event.payload.toString('utf8'))
+                console.log('evento apanhado'+ event.payload.toString('utf8'))
             }
         };
         await contract.addContractListener(listener);
     }
+    return announcementId;
 }
 
 //Prototype to check query sintax
