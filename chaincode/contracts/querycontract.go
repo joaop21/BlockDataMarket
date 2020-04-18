@@ -55,6 +55,12 @@ func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, annou
 		return fmt.Errorf("key already exists")
 	}
 
+	eventName := utils.Concat("Query:", announcementId)
+	err := ctx.GetStub().SetEvent(eventName, []byte("newQuery"))
+	if err != nil {
+		return errors.New("event can't be emitted")
+	}
+
 	return ctx.GetStub().PutState(key, queryAsBytes)
 }
 
@@ -101,6 +107,12 @@ func (_ *QueryContract) PutResponse(ctx context.TransactionContextInterface, que
         query.IssuerId,
         query.QueryId,
 	})
+
+	eventName := utils.Concat("Response:", queryId)
+	err = ctx.GetStub().SetEvent(eventName, []byte("Response to Query"))
+	if err != nil {
+		return errors.New("event can't be emitted")
+	}
 
 	return ctx.GetStub().PutState(key, queryAsBytes)
 }
