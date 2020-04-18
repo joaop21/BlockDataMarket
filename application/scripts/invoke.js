@@ -1,6 +1,6 @@
 'use strict';
 
-const { Gateway, Wallets } = require('fabric-network');
+const { Gateway, Wallets, ContractListener } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 const database = require('./database');
@@ -8,10 +8,18 @@ const database = require('./database');
 let contract;
 
 async function makeAnnouncement(funcName, filename, prices, category){
-    //check if owner exists
     const dataId = await database.putContent(filename);
     console.log(dataId + " " + prices + " " + category);
-	return (await contract.submitTransaction(funcName, dataId, prices, category));
+    const announcementId = await contract.submitTransaction(funcName, dataId, prices, category);
+    if(announcementId){
+        const eventName = 'Query:' + announcementId;
+            const listener = async (event) => {
+            if (event.eventName === eventName) {
+                console.log('evento apanhado'+event.payload.toString('utf8'))
+            }
+        };
+        await contract.addContractListener(listener);
+    }
 }
 
 //Prototype to check query sintax
