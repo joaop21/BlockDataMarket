@@ -10,17 +10,7 @@ let contract;
 async function makeAnnouncement(funcName, filename, prices, category){
     const dataId = await database.putContent(filename);
     console.log(dataId + " " + prices + " " + category);
-    const announcementId = await contract.submitTransaction(funcName, dataId, prices, category);
-    if(announcementId){
-        const eventName = 'Query:' + announcementId;
-            const listener = async (event) => {
-            if (event.eventName === eventName) {
-                console.log('evento apanhado'+ event.payload.toString('utf8'))
-            }
-        };
-        await contract.addContractListener(listener);
-    }
-    return announcementId;
+    return await contract.submitTransaction(funcName, dataId, prices, category);
 }
 
 //Prototype to check query sintax
@@ -112,6 +102,16 @@ async function main() {
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
                 result = await makeAnnouncement(args[0], args[1], args[2], args[3]);
+                if (result) {
+                    const eventName = 'Query:' + result;
+                    const listener = async (event) => {
+                        console.log('Received event: ' + event);
+                        if (event.eventName === eventName) {
+                            console.log('evento apanhado' + event.payload.toString('utf8'))
+                        }
+                    };
+                    await contract.addContractListener(listener);
+                }
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);
