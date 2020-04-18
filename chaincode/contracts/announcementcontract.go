@@ -22,18 +22,18 @@ func (_ *AnnouncementContract) Instantiate(_ context.TransactionContextInterface
 }
 
 // Adds a new Announcement to be sell, to the world state with given details
-func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextInterface, dataId string, prices []float32, categoryName string) (*string, error) {
+func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextInterface, dataId string, prices []float32, categoryName string) (string, error) {
 
 	identification := ctx.GetIdentification()
 	if identification == nil {
-		return nil, errors.New("the submitter has no identification")
+		return "", errors.New("the submitter has no identification")
 	}
 
 	// create a new Announcement
 	announcement := dataStructs.NewAnnouncement(uuid.New().String(), dataId, ctx.GetIdentification().Id, prices, categoryName, time.Now())
 
 	if announcement == nil {
-		return nil, errors.New("error creating announcement")
+		return "", errors.New("error creating announcement")
 	}
 
 	// create a composite key
@@ -47,15 +47,15 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextIn
 	// test if key already exists
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
-		return nil, errors.New("key already exists")
+		return "", errors.New("key already exists")
 	}
 
 	err := ctx.GetStub().PutState(key, announcementAsBytes)
 	if err != nil {
-		return nil, errors.New("error putting announcement in world state")
+		return "", errors.New("error putting announcement in world state")
 	}
 
-	return &(announcement.AnnouncementId), nil
+	return announcement.AnnouncementId, nil
 }
 
 // Get Announcement on world state by id
