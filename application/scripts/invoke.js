@@ -1,6 +1,6 @@
 'use strict';
 
-const { Gateway, Wallets, ContractListener } = require('fabric-network');
+const { Gateway, Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 const database = require('./database');
@@ -11,6 +11,8 @@ async function makeAnnouncement(funcName, filename, prices, category){
     const dataId = await database.putContent(filename);
     console.log(dataId + " " + prices + " " + category);
     const announcementId = await contract.submitTransaction(funcName, dataId, prices, category);
+    const pricesArray = prices.match(/\d+(?:\.\d+)?/g).map(Number);
+    console.log(pricesArray);
     if(announcementId != null){
         const eventName = 'Query:' + announcementId;
             const listener = async (event) => {
@@ -19,7 +21,7 @@ async function makeAnnouncement(funcName, filename, prices, category){
                     event = JSON.parse(event);
                     console.log('Event Payload: '+ event);
                     // putResponseLogic
-                    const index = prices.findIndex( (price) => price === event.price);
+                    const index = pricesArray.findIndex( (price) => price === event.price);
                     const response = index !== -1
                         ? await getResponse(dataId, index + 1)
                         : "Offer declined, price didn't match any of the levels";
