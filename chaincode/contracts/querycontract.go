@@ -22,11 +22,11 @@ func (_ *QueryContract) Instantiate(_ context.TransactionContextInterface) error
 }
 
 // Adds a new Query to world state
-func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, announcementId string, queryArg string, price float32) error {
+func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, announcementId string, queryArg string, price float32) (string, error) {
 
 	identification := ctx.GetIdentification()
 	if identification == nil {
-		return errors.New("the submitter has no identification")
+		return "", errors.New("the submitter has no identification")
 	}
 
 	// create a new Announcement
@@ -52,17 +52,22 @@ func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, annou
 	// test if key already exists
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
-		return fmt.Errorf("key already exists")
+		return "", fmt.Errorf("key already exists")
 	}
 
 	// send event with query information in payload
 	eventName := utils.Concat("Query:", announcementId)
 	err := ctx.GetStub().SetEvent(eventName, queryAsBytes)
 	if err != nil {
-		return errors.New("event can't be emitted")
+		return "", errors.New("event can't be emitted")
 	}
 
-	return ctx.GetStub().PutState(key, queryAsBytes)
+	err = ctx.GetStub().PutState(key, queryAsBytes)
+	if err != nil {
+		return "", errors.New("error putting query in world state")
+	}
+
+	return query.QueryId, nil
 }
 
 
