@@ -14,9 +14,16 @@ async function makeAnnouncement(funcName, filename, prices, category){
     if(announcementId != null){
         const eventName = 'Query:' + announcementId;
             const listener = async (event) => {
-                console.log('Received event: '+event);
                 if (event.eventName === eventName) {
-                    console.log('Event Payload: '+ event.payload.toString('utf8'))
+                    event = event.payload.toString();
+                    event = JSON.parse(event);
+                    console.log('Event Payload: '+ event);
+                    // putResponseLogic
+                    const index = prices.findIndex( (price) => price === event.price);
+                    const response = index !== -1
+                        ? await getResponse(dataId, index + 1)
+                        : "Offer declined, price didn't match any of the levels";
+                    await contract.submitTransaction('QueryContract:PutResponse', event.queryid, response);
                 }
             };
         await contract.addContractListener(listener);
