@@ -1,6 +1,7 @@
 'use strict';
 
 const { Gateway, Wallets } = require('fabric-network');
+const { generateKeyPairSync, privateDecrypt } = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const database = require('./database');
@@ -66,8 +67,54 @@ async function putResponse(funcName, queryid){
 
 }
 
+function generateKeys(passphrase) {
+    const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+        publicKeyEncoding: {
+          type: 'spki',
+          format: 'pem'
+        },
+        privateKeyEncoding: {
+          type: 'pkcs1',
+          format: 'pem',
+          cipher: 'aes-256-cbc',
+          passphrase: passphrase
+        }
+    })
+    
+    return publicKey, privateKey
+}
+
+async function makeIdentification(funcName, name, ip, passphrase){
+    let publicKey = {}
+    let privateKey = {}
+    publicKey, privateKey = generateKeys(passphrase)
+
+    fs.writeFile("priv.pem", privateKey, function (err) {
+        if (err) throw err;
+        console.log('File is created successfully.');
+    })
+
+    result = await contract.submitTransaction(funcName, name, ip, args[3]);
+    
+    return "Your Private-Key is saved under priv.pem, keep it save"
+}
+
+function decrypt(criptogram) {
+    const privateKey = {}
+
+    return privateDecrypt(privateKey, criptogram)
+}
+
+async function getResponse(funcName, queryId) {
+    responseCriptogram = await contract.submitTransaction(funcName, queryId)
+
+    return decrypt(responseCriptogram)
+}
+
 async function main() {
     try {
+        
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', "fabric-samples", "test-network", "organizations",
             "peerOrganizations", "org1.example.com", 'connection-org1.json');
@@ -99,7 +146,7 @@ async function main() {
         // accept args from stdin
         const args = process.argv.slice(2);
         let result = null;
-        // submit transaction depending on first arg
+        // submit transaction depending on first arg*/
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
                 result = await makeAnnouncement(args[0], args[1], args[2], args[3]);
@@ -122,6 +169,9 @@ async function main() {
             case 'QueryContract:PutResponse':
                 result = await putResponse(args[0], args[1]);
                 break;
+            case 'QueryContract:GetResponse':
+                result = await getResponse(args[0], args[1]);
+                break;
             case 'QueryContract:GetQueriesByAnnouncement':
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
@@ -129,7 +179,7 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'IdentificationContract:MakeIdentification':
-                result = await contract.submitTransaction(args[0], args[1], args[2], args[3]);
+                result = await makeIdentification(args[0], args[1], args[2], args[3]);
                 break;
             case 'IdentificationContract:GetIdentification':
                 result = await contract.submitTransaction(args[0], args[1]);
