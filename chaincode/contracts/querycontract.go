@@ -93,14 +93,14 @@ func (_ *QueryContract) PutResponse(ctx context.TransactionContextInterface, que
 	}
 
 	issuerId := query.IssuerId
-	issuerIdentification, err := new(IdentificationContract).GetIdentification(issuerId)
+	issuerIdentification, err := new(IdentificationContract).GetIdentification(ctx, issuerId)
 	if err != nil {
 		return err
 	}
 
-	responseCriptogram := utils.encrypt(response, issuerIdentification.PublicKey)
+	responseCriptogram := utils.Encrypt(response, issuerIdentification.PublicKey)
 
-	query.Response = responseCriptogram
+	query.Response = string(responseCriptogram)
 	var queryAsBytes []byte
 	queryAsBytes, _ = utils.Serialize(query)
 
@@ -143,19 +143,19 @@ func (_ *QueryContract) GetQuery(ctx context.TransactionContextInterface, queryI
 }
 
 //Gets reponse from specific query
-func (_ *QueryContract) GetResponse(ctx context.TransactionContextInterface, queryId string) (*dataStructs.Query, error) {
+func (_ *QueryContract) GetResponse(ctx context.TransactionContextInterface, queryId string) (string, error) {
 
 	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryId)
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	results, err := utils.GetIteratorValues(resultsIterator, new(dataStructs.Query))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if len(results) == 0 {
-		return nil, fmt.Errorf("Query doesn't exists")
+		return "", fmt.Errorf("Query doesn't exists")
 	}
 
 	return results[0].(*dataStructs.Query).Response, nil

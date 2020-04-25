@@ -12,6 +12,6 @@ type Query struct {
 	IssuerId       string    `json:"issuerId"`
 	Query          string    `json:"query"`
 	Price          float32   `json:"price"`
-	Response       []byte    `json:"Response"`
+	Response       string    `json:"Response"`
 	InsertedAt     time.Time `json:"insertedAt"`
 }

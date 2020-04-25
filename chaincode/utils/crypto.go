@@ -3,14 +3,14 @@ package utils
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
+	"crypto/sha1"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"os"
 )
-
-func encrypt(plaintext string, pubPem string) []byte {
+//Encrypt - cifra texto
+func Encrypt(plaintext string, pubPem string) []byte {
 	block, _ := pem.Decode([]byte(pubPem))
 	if block == nil {
 
@@ -27,13 +27,13 @@ func encrypt(plaintext string, pubPem string) []byte {
 	}
 
 	secretMessage := []byte(plaintext)
-	label := []byte()
+	label := []byte("")
 
 	// crypto/rand.Reader is a good source of entropy for randomizing the
 	// encryption function.
 	rng := rand.Reader
 
-	ciphertext, err := rsa.EncryptOAEP(sha256.New(), rng, pub, secretMessage, label)
+	ciphertext, err := rsa.EncryptOAEP(sha1.New(), rng, pub.(*rsa.PublicKey), secretMessage, label)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from encryption: %s\n", err)
 		return nil
@@ -42,14 +42,15 @@ func encrypt(plaintext string, pubPem string) []byte {
 	return ciphertext
 }
 
-func decrypt(ciphertext []byte, priv *rsa.PrivateKey) string {
+//Decrypt - decifra criptograma
+func Decrypt(ciphertext []byte, priv interface{}) string {
 
-	label := []byte()
+	label := []byte("")
 
 	// crypto/rand.Reader is a good source of entropy for blinding the RSA
 	rng := rand.Reader
 
-	plaintext, err := rsa.DecryptOAEP(sha256.New(), rng, priv, ciphertext, label)
+	plaintext, err := rsa.DecryptOAEP(sha1.New(), rng, priv.(*rsa.PrivateKey), ciphertext, label)
 
 	if err != nil {
 

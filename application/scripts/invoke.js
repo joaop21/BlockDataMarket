@@ -1,7 +1,7 @@
 'use strict';
 
 const { Gateway, Wallets } = require('fabric-network');
-const { generateKeyPairSync, privateDecrypt } = require('crypto');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const database = require('./database');
@@ -57,9 +57,11 @@ async function putResponse(funcName, queryid){
         
         const prices = announcementJson.prices; 
         const index = prices.findIndex( (price) => price === queryJson.price);
-        const response = index !== -1
+        console.log("1")
+	const response = index !== -1
             ? await getResponse(announcementJson.dataId, index + 1)
             : "Offer declined, price didn't match any of the levels";
+       	console.log(response)
         return await contract.submitTransaction(funcName, queryid, response);
     }else{
         return "Error: Query doesn't exist"
@@ -67,8 +69,9 @@ async function putResponse(funcName, queryid){
 
 }
 
-function generateKeys(passphrase) {
-    const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+
+async function makeIdentification(funcName, name, ip, passphrase){
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
         modulusLength: 2048,
         publicKeyEncoding: {
           type: 'spki',
@@ -81,21 +84,13 @@ function generateKeys(passphrase) {
           passphrase: passphrase
         }
     })
-    
-    return publicKey, privateKey
-}
-
-async function makeIdentification(funcName, name, ip, passphrase){
-    let publicKey = {}
-    let privateKey = {}
-    publicKey, privateKey = generateKeys(passphrase)
 
     fs.writeFile("priv.pem", privateKey, function (err) {
         if (err) throw err;
         console.log('File is created successfully.');
     })
 
-    result = await contract.submitTransaction(funcName, name, ip, args[3]);
+    await contract.submitTransaction(funcName, name, ip, publicKey);
     
     return "Your Private-Key is saved under priv.pem, keep it save"
 }
@@ -103,10 +98,10 @@ async function makeIdentification(funcName, name, ip, passphrase){
 function decrypt(criptogram) {
     const privateKey = {}
 
-    return privateDecrypt(privateKey, criptogram)
+    return crypto.privateDecrypt(privateKey, criptogram)
 }
 
-async function getResponse(funcName, queryId) {
+async function getQueryResponse(funcName, queryId) {
     responseCriptogram = await contract.submitTransaction(funcName, queryId)
 
     return decrypt(responseCriptogram)
@@ -170,7 +165,7 @@ async function main() {
                 result = await putResponse(args[0], args[1]);
                 break;
             case 'QueryContract:GetResponse':
-                result = await getResponse(args[0], args[1]);
+                result = await getQueryResponse(args[0], args[1]);
                 break;
             case 'QueryContract:GetQueriesByAnnouncement':
                 result = await contract.submitTransaction(args[0], args[1]);
