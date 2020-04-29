@@ -104,15 +104,7 @@ func (_ *QueryContract) PutResponse(ctx context.TransactionContextInterface, que
 		return errors.New("the submitter isn't the announcement owner. He can't respond")
 	}
 
-	issuerId := query.IssuerId
-	issuerIdentification, err := new(IdentificationContract).GetIdentification(ctx, issuerId)
-	if err != nil {
-		return err
-	}
-
-	responseCriptogram := utils.Encrypt(response, issuerIdentification.PublicKey)
-
-	query.Response = string(responseCriptogram)
+	query.Response = response
 	var queryAsBytes []byte
 	queryAsBytes, _ = utils.Serialize(query)
 
