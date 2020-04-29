@@ -25,13 +25,10 @@ async function makeAnnouncement(funcName, filename, prices, category){
                 const response = index !== -1
                     ? await getResponse(dataId, index + 1)
                     : "Offer declined, price didn't match any of the levels";
-		console.log("1")
                 const issuer = await contract.submitTransaction('IdentificationContract:GetIdentification', event.issuerId);
-           	const issuerJson = JSON.parse(issuer)
-		console.log("2")
-           	const criptogram = mycrypto.encrypt(response, issuerJson.publicKey)
-		console.log("3")
-        	return await contract.submitTransaction('QueryContract:PutResponse', event.queryId, criptogram);
+           	    const issuerJson = JSON.parse(issuer);
+                const criptogram = mycrypto.encrypt(response, issuerJson.publicKey);
+                return await contract.submitTransaction('QueryContract:PutResponse', event.queryId, criptogram);
             }
         };
         await contract.addContractListener(listener);
@@ -61,11 +58,11 @@ async function makeQuery(funcName, announcementId, queryArg, price){
                     if (event.eventName === eventName) {
                         event = event.payload.toString();
                         event = JSON.parse(event);
-			const cryptogram = event.response;
-			const announcementJson = JSON.parse(announcement);
-			const owner = await contract.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId)
-			const ownerJson = JSON.parse(owner)
-			const plaintext = mycrypto.decrypt(cryptogram, ownerJson.publicKey)
+                        const cryptogram = event.response;
+                        const announcementJson = JSON.parse(announcement);
+                        const owner = await contract.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
+                        const ownerJson = JSON.parse(owner);
+                        const plaintext = mycrypto.decrypt(cryptogram, ownerJson.publicKey);
                         console.log('Received Response: '+ plaintext);
                     }
                 };
@@ -87,7 +84,7 @@ async function getResponse(dataId, level){
     return content.slice(0, content.length*filePercentage);
 }
 
-
+//deprecated after events implementation
 async function putResponse(funcName, queryid){
     const query = await contract.submitTransaction('QueryContract:GetQuery',queryid);
     if(query){
@@ -124,7 +121,7 @@ async function makeIdentification(funcName, name, ip){
 }
 
 
-
+//deprecated after events implementation
 async function getQuery(funcName, queryId) {
     query = await contract.submitTransaction(funcName, queryId);
     const queryJson = JSON.parse(query);
@@ -190,10 +187,12 @@ async function main() {
             case 'QueryContract:MakeQuery':
                 result = await makeQuery(args[0], args[1], args[2], args[3]);
                 break;
+            //deprecated after events implementation
             case 'QueryContract:PutResponse':
                 result = await putResponse(args[0], args[1]);
                 break;
-            case 'QueryContract:GetQuerie':
+            //deprecated after events implementation
+            case 'QueryContract:GetQuery':
                 result = await getQuery(args[0], args[1]);
                 break;
             case 'QueryContract:GetQueriesByAnnouncement':
