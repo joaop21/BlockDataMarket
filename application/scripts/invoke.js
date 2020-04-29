@@ -25,7 +25,13 @@ async function makeAnnouncement(funcName, filename, prices, category){
                 const response = index !== -1
                     ? await getResponse(dataId, index + 1)
                     : "Offer declined, price didn't match any of the levels";
-                await contract.submitTransaction('QueryContract:PutResponse', event.queryId, response);
+		console.log("1")
+                const issuer = await contract.submitTransaction('IdentificationContract:GetIdentification', event.issuerId);
+           	const issuerJson = JSON.parse(issuer)
+		console.log("2")
+           	const criptogram = mycrypto.encrypt(response, issuerJson.publicKey)
+		console.log("3")
+        	return await contract.submitTransaction('QueryContract:PutResponse', event.queryId, criptogram);
             }
         };
         await contract.addContractListener(listener);
@@ -43,6 +49,7 @@ function checkQuerySintax(query){
 
 async function makeQuery(funcName, announcementId, queryArg, price){
     const announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
+    console.log(funcName + " " + announcementId + " " + queryArg + " " + price)
     if(announcement){
         //check querySyntax
         const check = checkQuerySintax(queryArg);
@@ -54,7 +61,12 @@ async function makeQuery(funcName, announcementId, queryArg, price){
                     if (event.eventName === eventName) {
                         event = event.payload.toString();
                         event = JSON.parse(event);
-                        console.log('Received Response: '+event.response);
+			const cryptogram = event.response;
+			const announcementJson = JSON.parse(announcement);
+			const owner = await contract.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId)
+			const ownerJson = JSON.parse(owner)
+			const plaintext = mycrypto.decrypt(cryptogram, ownerJson.publicKey)
+                        console.log('Received Response: '+ plaintext);
                     }
                 };
                 await contract.addContractListener(listener);
@@ -92,7 +104,9 @@ async function putResponse(funcName, queryid){
             ? await getResponse(announcementJson.dataId, index + 1)
             : "Offer declined, price didn't match any of the levels";
            //encrypt response
-           criptogram = mycrypto.encrypt(response)
+	   const issuer = await contract.submitTrabsaction('IdentificationContract:GetIdentification', queryJson.issuerId);
+	   const issuerJson = JSON.parse(issuer)
+           criptogram = mycrypto.encrypt(response, issuerJson.publicKey)
         return await contract.submitTransaction(funcName, queryid, criptogram);
     }else{
         return "Error: Query doesn't exist"
@@ -159,7 +173,7 @@ async function main() {
         // submit transaction depending on first arg*/
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
-                result = await makeAnnouncement(args[0], args[1], args[2]);
+                result = await makeAnnouncement(args[0], args[1], args[2], args[3]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);

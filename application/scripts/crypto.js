@@ -39,16 +39,6 @@ function encrypt(plaintext, publicKey) {
     return criptogram
 }
 
-function main() {
-    pk = generateKeys()
-    let c = encrypt(fs.readFileSync('./invoke.js','utf8'), pk)
-    console.log(c)
-    let p = decrypt(c, pk)
-    console.log(p)
-}
-
-
-main()
 module.exports.generateKeys = generateKeys
 module.exports.decrypt = decrypt
 module.exports.encrypt = encrypt
