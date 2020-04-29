@@ -8,10 +8,28 @@ const database = require('./database');
 let contract;
 
 async function makeAnnouncement(funcName, filename, prices, category){
-    //check if owner exists
     const dataId = await database.putContent(filename);
     console.log(dataId + " " + prices + " " + category);
-	return (await contract.submitTransaction(funcName, dataId, prices, category));
+    const announcementId = await contract.submitTransaction(funcName, dataId, prices, category);
+    const pricesArray = prices.match(/\d+(?:\.\d+)?/g).map(Number);
+    if(announcementId != null){
+        const eventName = 'Query:' + announcementId;
+        const listener = async (event) => {
+            if (event.eventName === eventName) {
+                event = event.payload.toString();
+                event = JSON.parse(event);
+                console.log('Received Query: '+event.queryId);
+                // putResponseLogic
+                const index = pricesArray.findIndex( (price) => price === event.price);
+                const response = index !== -1
+                    ? await getResponse(dataId, index + 1)
+                    : "Offer declined, price didn't match any of the levels";
+                await contract.submitTransaction('QueryContract:PutResponse', event.queryId, response);
+            }
+        };
+        await contract.addContractListener(listener);
+    }
+    return announcementId;
 }
 
 //Prototype to check query sintax
@@ -28,7 +46,19 @@ async function makeQuery(funcName, announcementId, queryArg, price){
         //check querySyntax
         const check = checkQuerySintax(queryArg);
 	    if(check[0]){
-            return (await contract.submitTransaction(funcName, announcementId, queryArg, price));
+            const queryId = await contract.submitTransaction(funcName, announcementId, queryArg, price);
+            if (queryId != null){
+                const eventName = 'Response:' + queryId;
+                const listener = async (event) => {
+                    if (event.eventName === eventName) {
+                        event = event.payload.toString();
+                        event = JSON.parse(event);
+                        console.log('Received Response: '+event.response);
+                    }
+                };
+                await contract.addContractListener(listener);
+            }
+            return queryId;
         }else{
             return check[1];
         }
@@ -139,7 +169,7 @@ async function main() {
         console.log(`Transaction has been submitted, result is: ${result.toString()}`);
 
         // Disconnect from the gateway.
-        await gateway.disconnect();
+        // await gateway.disconnect();
 
     } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
@@ -147,4 +177,11 @@ async function main() {
     }
 }
 
-main();
+main().then(()=>{
+    console.log('done');
+}).catch((e)=>{
+    console.log('Final error checking.......');
+    console.log(e);
+    console.log(e.stack);
+    process.exit(-1);
+});
