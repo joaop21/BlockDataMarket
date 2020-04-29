@@ -1,9 +1,9 @@
 'use strict';
 
 const { Gateway, Wallets } = require('fabric-network');
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const mycrypto = require('./crypto')
 const database = require('./database');
 
 let contract;
@@ -88,11 +88,12 @@ async function putResponse(funcName, queryid){
         const prices = announcementJson.prices; 
         const index = prices.findIndex( (price) => price === queryJson.price);
         console.log("1")
-	const response = index !== -1
+	    const response = index !== -1
             ? await getResponse(announcementJson.dataId, index + 1)
             : "Offer declined, price didn't match any of the levels";
-       	console.log(response)
-        return await contract.submitTransaction(funcName, queryid, response);
+           //encrypt response
+           criptogram = mycrypto.encrypt(response)
+        return await contract.submitTransaction(funcName, queryid, criptogram);
     }else{
         return "Error: Query doesn't exist"
     }
@@ -100,41 +101,25 @@ async function putResponse(funcName, queryid){
 }
 
 
-async function makeIdentification(funcName, name, ip, passphrase){
-    const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-        modulusLength: 2048,
-        publicKeyEncoding: {
-          type: 'spki',
-          format: 'pem'
-        },
-        privateKeyEncoding: {
-          type: 'pkcs1',
-          format: 'pem',
-          cipher: 'aes-256-cbc',
-          passphrase: passphrase
-        }
-    })
-
-    fs.writeFile("priv.pem", privateKey, function (err) {
-        if (err) throw err;
-        console.log('File is created successfully.');
-    })
+async function makeIdentification(funcName, name, ip){
+    publicKey = mycrypto.generateKeys();
 
     await contract.submitTransaction(funcName, name, ip, publicKey);
     
     return "Your Private-Key is saved under priv.pem, keep it save"
 }
 
-function decrypt(criptogram) {
-    const privateKey = {}
 
-    return crypto.privateDecrypt(privateKey, criptogram)
-}
 
-async function getQueryResponse(funcName, queryId) {
-    responseCriptogram = await contract.submitTransaction(funcName, queryId)
+async function getQuery(funcName, queryId) {
+    query = await contract.submitTransaction(funcName, queryId);
+    const queryJson = JSON.parse(query);
+    announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', queryJson.announcementId);
+    const announcementJson = JSON.parse(announcement);
+    owner = await contract.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
+    ownerJson = JSON.parse(owner)
 
-    return decrypt(responseCriptogram)
+    return mycrypto.decrypt(responseCriptogram, owner.publicKey)
 }
 
 async function main() {
@@ -174,7 +159,7 @@ async function main() {
         // submit transaction depending on first arg*/
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
-                result = await makeAnnouncement(args[0], args[1], args[2], args[3]);
+                result = await makeAnnouncement(args[0], args[1], args[2]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);
@@ -194,8 +179,8 @@ async function main() {
             case 'QueryContract:PutResponse':
                 result = await putResponse(args[0], args[1]);
                 break;
-            case 'QueryContract:GetResponse':
-                result = await getQueryResponse(args[0], args[1]);
+            case 'QueryContract:GetQuerie':
+                result = await getQuery(args[0], args[1]);
                 break;
             case 'QueryContract:GetQueriesByAnnouncement':
                 result = await contract.submitTransaction(args[0], args[1]);
