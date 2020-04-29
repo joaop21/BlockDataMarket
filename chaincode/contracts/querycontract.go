@@ -6,10 +6,11 @@ import (
 	"dataMarket/utils"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"time"
 )
 
 type QueryContract struct {
@@ -31,13 +32,13 @@ func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, annou
 
 	// create a new Announcement
 	query := dataStructs.Query{
-		Type:			"Query",
+		Type:           "Query",
 		QueryId:        uuid.New().String(),
 		AnnouncementId: announcementId,
 		IssuerId:       ctx.GetIdentification().Id,
-		Price:			price,
+		Price:          price,
 		Query:          queryArg,
-		Response:   	"",
+		Response:       "",
 		InsertedAt:     time.Now(),
 	}
 
@@ -69,7 +70,6 @@ func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, annou
 
 	return query.QueryId, nil
 }
-
 
 // Adds a new Query to world state
 func (_ *QueryContract) PutResponse(ctx context.TransactionContextInterface, queryId string, response string) error {
@@ -109,9 +109,9 @@ func (_ *QueryContract) PutResponse(ctx context.TransactionContextInterface, que
 	queryAsBytes, _ = utils.Serialize(query)
 
 	key, _ := ctx.GetStub().CreateCompositeKey("Query", []string{
-    	query.AnnouncementId,
-        query.IssuerId,
-        query.QueryId,
+		query.AnnouncementId,
+		query.IssuerId,
+		query.QueryId,
 	})
 
 	eventName := utils.Concat("Response:", queryId)
@@ -126,7 +126,7 @@ func (_ *QueryContract) PutResponse(ctx context.TransactionContextInterface, que
 // Get queries made to an announcement
 func (_ *QueryContract) GetQueriesByAnnouncement(ctx context.TransactionContextInterface, announcementId string) ([]*dataStructs.Query, error) {
 	// get all the keys that match with args
-	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Query", []string{announcementId,})
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Query", []string{announcementId})
 	if err != nil {
 		return nil, err
 	}
@@ -152,6 +152,24 @@ func (_ *QueryContract) GetQuery(ctx context.TransactionContextInterface, queryI
 	return results[0].(*dataStructs.Query), nil
 }
 
+//Gets reponse from specific query
+func (_ *QueryContract) GetResponse(ctx context.TransactionContextInterface, queryId string) (string, error) {
+
+	queryString := fmt.Sprintf("{\"selector\":{\"type\":\"Query\",\"queryId\":\"%s\"}}", queryId)
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return "", err
+	}
+	results, err := utils.GetIteratorValues(resultsIterator, new(dataStructs.Query))
+	if err != nil {
+		return "", err
+	}
+	if len(results) == 0 {
+		return "", fmt.Errorf("Query doesn't exists")
+	}
+
+	return results[0].(*dataStructs.Query).Response, nil
+}
 
 // Get queries made to an announcement by an issuer
 func (_ *QueryContract) GetQueriesByIssuer(ctx context.TransactionContextInterface, issuerId string) ([]*dataStructs.Query, error) {
