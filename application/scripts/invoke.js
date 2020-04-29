@@ -96,7 +96,6 @@ async function putResponse(funcName, queryid){
         
         const prices = announcementJson.prices; 
         const index = prices.findIndex( (price) => price === queryJson.price);
-        console.log("1")
 	    const response = index !== -1
             ? await getResponse(announcementJson.dataId, index + 1)
             : "Offer declined, price didn't match any of the levels";
