@@ -1,9 +1,8 @@
 package utils
 
 import (
-	"errors"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/jinzhu/copier"
+	"reflect"
 )
 
 // loop an iterator
@@ -16,12 +15,7 @@ func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface, obj int
 			return nil, err
 		}
 
-		newObj := obj
-		err = copier.Copy(newObj, obj)
-		if err != nil {
-			return nil, errors.New("can't deep clone obj")
-		}
-
+		newObj := reflect.New(reflect.TypeOf(obj)).Elem().Interface()
 		err = Deserialize(element.Value, newObj)
 		if err != nil {
 			return nil, err
