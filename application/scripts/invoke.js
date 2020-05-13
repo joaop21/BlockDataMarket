@@ -22,13 +22,13 @@ function checkQuerySintax(query){
     return [true, null]
 }
 
-async function makeQuery(funcName, announcementId, queryArg, price){
+async function makeQuery(announcementId, queryArg, price){
     const announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
     if(announcement){
         //check querySyntax
         const check = checkQuerySintax(queryArg);
 	    if(check[0]){
-            return (await contract.submitTransaction(funcName, announcementId, queryArg, price));
+            return (await contract.submitTransaction("QueryContract:MakeQuery", announcementId, queryArg, price));
         }else{
             return check[1];
         }
@@ -117,7 +117,7 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'QueryContract:MakeQuery':
-                result = await makeQuery(args[0], args[1], args[2], args[3]);
+                result = await makeQuery(args[1], args[2], args[3]);
                 break;
             case 'QueryContract:PutResponse':
                 result = await putResponse(args[0], args[1]);
