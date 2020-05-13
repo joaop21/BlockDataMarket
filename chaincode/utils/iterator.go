@@ -15,7 +15,7 @@ func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface, obj int
 			return nil, err
 		}
 
-		newObj := reflect.New(reflect.TypeOf(obj)).Elem().Interface()
+		newObj := reflect.New(reflect.TypeOf(obj).Elem()).Interface()
 		err = Deserialize(element.Value, newObj)
 		if err != nil {
 			return nil, err
