@@ -1,6 +1,10 @@
 package utils
 
-import "github.com/hyperledger/fabric-chaincode-go/shim"
+import (
+	"errors"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/jinzhu/copier"
+)
 
 // loop an iterator
 func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface, obj interface{}) (res []interface{}, err error)  {
@@ -12,7 +16,12 @@ func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface, obj int
 			return nil, err
 		}
 
-		newObj := obj
+		var newObj interface{}
+		err = copier.Copy(newObj, obj)
+		if err != nil {
+			return nil, errors.New("can't deep clone obj")
+		}
+
 		err = Deserialize(element.Value, newObj)
 		if err != nil {
 			return nil, err
