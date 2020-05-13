@@ -16,7 +16,7 @@ func GetIteratorValues(resultsIterator shim.StateQueryIteratorInterface, obj int
 			return nil, err
 		}
 
-		var newObj interface{}
+		newObj := obj
 		err = copier.Copy(newObj, obj)
 		if err != nil {
 			return nil, errors.New("can't deep clone obj")
