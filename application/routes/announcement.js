@@ -66,6 +66,19 @@ router.post('/', upload.single('data_file'), async function (req, res) {
     result = await chaincode.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, prices, category)
 
     res.send({ result: result.toString() });
+
+    if (file && prices && category) {
+        try{
+            const dataId = await database.putContent(file.path);
+            console.log(dataId + " " + prices + " " + category);
+            result = await chaincode.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, prices, category)
+            res.send({ result: result.toString() });
+        } catch(err) {
+            res.send({ error: err.toString() });
+        }
+    }
+    else 
+        res.status(400).send({ error: "You must provide a file, its category and prices." })
 });
 
 module.exports = router;
