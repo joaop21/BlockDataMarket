@@ -127,7 +127,7 @@ func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx context.Transaction
 // Auxiliary function for repeating code
 func getAnnouncements(resultsIterator shim.StateQueryIteratorInterface) ([]*dataStructs.Announcement, error) {
 	// Iterate values received
-	values, err := utils.GetIteratorValues(resultsIterator, new(dataStructs.Announcement))
+	values, err := utils.GetIteratorValues(resultsIterator, dataStructs.Announcement{})
 	if err != nil {
 		return nil, err
 	}
