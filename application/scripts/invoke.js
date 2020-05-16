@@ -99,10 +99,10 @@ async function putResponse(funcName, queryid){
 	    const response = index !== -1
             ? await getResponse(announcementJson.dataId, index + 1)
             : "Offer declined, price didn't match any of the levels";
-           //encrypt response
-	   const issuer = await contract.submitTrabsaction('IdentificationContract:GetIdentification', queryJson.issuerId);
-	   const issuerJson = JSON.parse(issuer)
-           criptogram = mycrypto.encrypt(response, issuerJson.publicKey)
+	    //encrypt response
+	    const issuer = await contract.submitTrabsaction('IdentificationContract:GetIdentification', queryJson.issuerId);
+	    const issuerJson = JSON.parse(issuer)
+        let criptogram = mycrypto.encrypt(response, issuerJson.publicKey)
         return await contract.submitTransaction(funcName, queryid, criptogram);
     }else{
         return "Error: Query doesn't exist"
@@ -112,7 +112,7 @@ async function putResponse(funcName, queryid){
 
 
 async function makeIdentification(funcName, name, ip){
-    publicKey = mycrypto.generateKeys();
+    let publicKey = mycrypto.generateKeys();
 
     await contract.submitTransaction(funcName, name, ip, publicKey);
     
@@ -124,10 +124,10 @@ async function makeIdentification(funcName, name, ip){
 async function getQuery(funcName, queryId) {
     query = await contract.submitTransaction(funcName, queryId);
     const queryJson = JSON.parse(query);
-    announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', queryJson.announcementId);
+    let announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', queryJson.announcementId);
     const announcementJson = JSON.parse(announcement);
-    owner = await contract.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
-    ownerJson = JSON.parse(owner)
+    let owner = await contract.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
+    let ownerJson = JSON.parse(owner)
 
     return mycrypto.decrypt(responseCriptogram, owner.publicKey)
 }
@@ -201,7 +201,7 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'IdentificationContract:MakeIdentification':
-                result = await makeIdentification(args[0], args[1], args[2], args[3]);
+                result = await makeIdentification(args[0], args[1], args[2]);
                 break;
             case 'IdentificationContract:GetIdentification':
                 result = await contract.submitTransaction(args[0], args[1]);
