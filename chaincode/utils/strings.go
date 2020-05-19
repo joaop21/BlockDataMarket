@@ -11,3 +11,16 @@ func Concat(strs ...string) string {
 	}
 	return sb.String()
 }
+
+// Remove repetitions from an array of strings
+func RemoveRepetitions(stringArray []string) []string {
+	keys := make(map[string]bool)
+	var list []string
+	for _ , entry := range stringArray {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
