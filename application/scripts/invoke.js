@@ -206,6 +206,15 @@ async function main() {
             case 'IdentificationContract:GetIdentification':
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
+            case 'CategoryContract:MakeCategory':
+                result = await contract.submitTransaction(args[0], args[1], args[2]);
+                break;
+            case 'CategoryContract:GetCategory':
+                result = await contract.submitTransaction(args[0], args[1]);
+                break;
+            case 'CategoryContract:GetCategories':
+                result = await contract.submitTransaction(args[0]);
+                break;
         }
 
         console.log(`Transaction has been submitted, result is: ${result.toString()}`);
