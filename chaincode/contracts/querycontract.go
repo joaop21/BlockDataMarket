@@ -6,9 +6,6 @@ import (
 	"dataMarket/utils"
 	"errors"
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -30,17 +27,18 @@ func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, annou
 		return "", errors.New("the submitter has no identification")
 	}
 
-	// create a new Announcement
-	query := dataStructs.Query{
-		Type:           "Query",
-		QueryId:        uuid.New().String(),
-		AnnouncementId: announcementId,
-		IssuerId:       ctx.GetIdentification().Id,
-		Price:          price,
-		Query:          queryArg,
-		Response:       "",
-		InsertedAt:     time.Now(),
+	// check if announcement exist
+	announcement, err := new(AnnouncementContract).GetAnnouncement(ctx, announcementId)
+	if err != nil || announcement == nil {
+		return "", errors.New("announcement ID does not exist")
 	}
+
+	if !utils.Contains(announcement.PossibleQueries, queryArg) {
+		return "", errors.New("announcement does not support that kind of query")
+	}
+
+	// create a new Announcement
+	query := dataStructs.NewQuery(announcementId, ctx.GetIdentification().Id, price, queryArg)
 
 	// create a composite key
 	queryAsBytes, _ := utils.Serialize(query)
@@ -58,7 +56,7 @@ func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, annou
 
 	// send event with query information in payload
 	eventName := utils.Concat("Query:", announcementId)
-	err := ctx.GetStub().SetEvent(eventName, queryAsBytes)
+	err = ctx.GetStub().SetEvent(eventName, queryAsBytes)
 	if err != nil {
 		return "", errors.New("event can't be emitted")
 	}

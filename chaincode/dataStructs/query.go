@@ -1,6 +1,7 @@
 package dataStructs
 
 import (
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -14,4 +15,20 @@ type Query struct {
 	Price          float32   `json:"price"`
 	Response       string    `json:"response"`
 	InsertedAt     time.Time `json:"insertedAt"`
+}
+
+// Constructor for Query
+func NewQuery(announcementId string, issuerId string, price float32, queryArg string) *Query {
+
+	return &Query{
+		Type:           "Query",
+		QueryId:        uuid.New().String(),
+		AnnouncementId: announcementId,
+		IssuerId:       issuerId,
+		Price:          price,
+		Query:          queryArg,
+		Response:       "",
+		InsertedAt:     time.Now(),
+	}
+
 }
