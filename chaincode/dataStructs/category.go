@@ -11,8 +11,8 @@ type Category struct {
 func NewCategory(name string, queries []string) *Category {
 
     return &Category{
-        Type: "Category",
-        Name: name,
+        Type:            "Category",
+        Name:            name,
         PossibleQueries: queries,
     }
 

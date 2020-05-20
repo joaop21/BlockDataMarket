@@ -22,15 +22,33 @@ func (_ *AnnouncementContract) Instantiate(_ context.TransactionContextInterface
 }
 
 // Adds a new Announcement to be sell, to the world state with given details
-func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextInterface, dataId string, prices []float32, categoryName string) (string, error) {
+func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextInterface, dataId string, queries []string, prices []float32, categoryName string) (string, error) {
 
 	identification := ctx.GetIdentification()
 	if identification == nil {
 		return "", errors.New("the submitter has no identification")
 	}
 
+	// check if queries and prices have the same length
+	if len(queries) != len(prices) {
+		return "", errors.New("queries and correspondent prices have not the same length")
+	}
+
+	// check if category exist
+	category, err := new(CategoryContract).GetCategory(ctx, categoryName)
+	if err != nil {
+		return "", err
+	}
+
+	// check if queries are possible
+	for _, query := range queries {
+		if !utils.Contains(category.PossibleQueries, query) {
+			return "", errors.New("query does not exist in category: " + query)
+		}
+	}
+
 	// create a new Announcement
-	announcement := dataStructs.NewAnnouncement(uuid.New().String(), dataId, ctx.GetIdentification().Id, prices, categoryName, time.Now())
+	announcement := dataStructs.NewAnnouncement(uuid.New().String(), dataId, ctx.GetIdentification().Id, queries, prices, categoryName, time.Now())
 
 	if announcement == nil {
 		return "", errors.New("error creating announcement")
@@ -50,7 +68,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextIn
 		return "", errors.New("key already exists")
 	}
 
-	err := ctx.GetStub().PutState(key, announcementAsBytes)
+	err = ctx.GetStub().PutState(key, announcementAsBytes)
 	if err != nil {
 		return "", errors.New("error putting announcement in world state")
 	}
@@ -71,7 +89,7 @@ func (_ *AnnouncementContract) GetAnnouncement(ctx context.TransactionContextInt
 	results, err := utils.GetIteratorValues(resultsIterator, new(dataStructs.Announcement))
 	if err != nil {
 		return nil, err
-	}	
+	}
 	if len(results) == 0 {
 		return nil, errors.New("announcement doesn't exists")
 	}
@@ -91,13 +109,8 @@ func (_ *AnnouncementContract) GetAnnouncements(ctx context.TransactionContextIn
 
 // Get all Announcements for a category
 func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx context.TransactionContextInterface, categoryName string) ([]*dataStructs.Announcement, error) {
-	// check if category is available
-	category, err := dataStructs.CheckExistence(categoryName)
-	if err != nil {
-		return nil, fmt.Errorf(err.Error())
-	}
 	// get all the keys that match with args
-	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{category.Name})
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{categoryName})
 	if err != nil {
 		return nil, err
 	}
