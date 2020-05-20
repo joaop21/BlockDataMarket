@@ -25,7 +25,7 @@ func main() {
 	queryContract.TransactionContextHandler = new(context.TransactionContext)
 	queryContract.BeforeTransaction = context.SearchIdentitiesHandler
 
-	categoryContract := new(contracts.QueryContract)
+	categoryContract := new(contracts.CategoryContract)
 	categoryContract.Name = "CategoryContract"
 
 	chaincode, err := contractapi.NewChaincode(announcementContract, identificationContract, queryContract, categoryContract)
