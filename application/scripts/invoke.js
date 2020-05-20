@@ -44,7 +44,7 @@ function checkQuerySintax(query){
     return [true, null]
 }
 
-async function makeQuery(funcName, announcementId, queryArg, price){
+async function makeQuery(announcementId, queryArg, price){
     const announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
     console.log(funcName + " " + announcementId + " " + queryArg + " " + price)
     if(announcement){
@@ -184,7 +184,7 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'QueryContract:MakeQuery':
-                result = await makeQuery(args[0], args[1], args[2], args[3]);
+                result = await makeQuery(args[1], args[2], args[3]);
                 break;
             //deprecated after events implementation
             case 'QueryContract:PutResponse':
