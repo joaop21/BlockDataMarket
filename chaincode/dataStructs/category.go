@@ -1,32 +1,19 @@
 package dataStructs
 
-import (
-	"errors"
-)
-
+// Category object that represents a category in the World State
 type Category struct {
-    Name    string
-    Actions []string
+    Type               string     `json:"type"`
+    Name               string     `json:"name"`
+    PossibleQueries    []string   `json:"possibleQueries"`
 }
 
-var (
-    Mobile = Category{
-        Name: "Mobile",
-        Actions: []string{"Query1", "Query2"}}
-    Energy = Category{
-        Name: "Energy",
-        Actions: []string{"Query1", "Query2"}}
-)
+// Constructor for Category
+func NewCategory(name string, queries []string) *Category {
 
-var categories = map[string]Category {
-    "Mobile": Mobile ,
-    "Energy": Energy,
-}
-
-func CheckExistence(input string) (*Category, error) {
-    if value, found := categories[input]; found == false {
-        return nil, errors.New("no category available")
-    } else {
-        return &value, nil
+    return &Category{
+        Type:            "Category",
+        Name:            name,
+        PossibleQueries: queries,
     }
+
 }

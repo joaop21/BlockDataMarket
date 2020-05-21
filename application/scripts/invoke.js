@@ -8,10 +8,10 @@ const database = require('./database');
 
 let contract;
 
-async function makeAnnouncement(funcName, filename, prices, category){
+async function makeAnnouncement(funcName, filename, queries, prices, category){
     const dataId = await database.putContent(filename);
     console.log(dataId + " " + prices + " " + category);
-    const announcementId = await contract.submitTransaction(funcName, dataId, prices, category);
+    const announcementId = await contract.submitTransaction(funcName, dataId, queries, prices, category);
     const pricesArray = prices.match(/\d+(?:\.\d+)?/g).map(Number);
     if(announcementId != null){
         const eventName = 'Query:' + announcementId;
@@ -169,7 +169,7 @@ async function main() {
         // submit transaction depending on first arg*/
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
-                result = await makeAnnouncement(args[0], args[1], args[2], args[3]);
+                result = await makeAnnouncement(args[0], args[1], args[2], args[3], args[4]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);
@@ -205,6 +205,15 @@ async function main() {
                 break;
             case 'IdentificationContract:GetIdentification':
                 result = await contract.submitTransaction(args[0], args[1]);
+                break;
+            case 'CategoryContract:MakeCategory':
+                result = await contract.submitTransaction(args[0], args[1], args[2]);
+                break;
+            case 'CategoryContract:GetCategory':
+                result = await contract.submitTransaction(args[0], args[1]);
+                break;
+            case 'CategoryContract:GetCategories':
+                result = await contract.submitTransaction(args[0]);
                 break;
         }
 
