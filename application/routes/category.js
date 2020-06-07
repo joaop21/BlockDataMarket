@@ -1,10 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const app = require('../app');
-const database = require('../scripts/database');
 const multer = require('multer')
 const upload = multer()
-const crypto = require('../scripts/crypto')
 
 var chaincode;
 
@@ -15,38 +13,40 @@ router.use(async function (req, res, next) {
     else res.send({ result: "!ok" });
 })
 
-/* GET identification */
+/* GET category */
 router.get('/', async function (req, res) {
-    var identificationId = req.query.identificationId
+    var categoryName = req.query.categoryName
 
     var result;
-    if (identificationId){
-        result = await chaincode.submitTransaction('IdentificationContract:GetIdentification', identificationId);
+    try {
+        if (categoryName) {
+            result = await chaincode.submitTransaction('CategoryContract:GetCategory', categoryName);
+        }
+        else {
+            result = await chaincode.submitTransaction('CategoryContract:GetCategories');
+        }
         res.send({ result: result.toString() });
     }
-    else {
-        res.status(400).send({error : "No identification Id was provided"})
+    catch (err) {
+        res.send({ error: err.toString() })
     }
-
 });
 
-/* POST identification */
+/* POST category */
 router.post('/', upload.none(), async function (req, res) {
-    var name =  req.body.name
+    var name = req.body.name
+    var queries = req.body.queries
 
-    if (name) {
-        try{
-            var publicKey = crypto.generateKeys();
-
-            var result = await chaincode.submitTransaction('IdentificationContract:MakeIdentification', name, '127.0.0.1', publicKey);
-
+    if (name && queries) {
+        try {
+            var result = await chaincode.submitTransaction('CategoryContract:MakeCategory', name, queries);
             res.send({ result: result.toString() });
-        } catch(err) {
+        } catch (err) {
             res.status(400).send({ error: err.toString() });
         }
     }
-    else 
-        res.status(400).send({ error: "You must provide name in order to make an identification" })
+    else
+        res.status(400).send({ error: "You must provide a name and a list of possible queries in order to make a category" })
 });
 
 

@@ -5,28 +5,30 @@ const fs = require('fs');
 const path = require('path');
 const mycrypto = require('./crypto')
 const database = require('./database');
+const wiki = require('./wikiUtils')
 
 let contract;
 
-async function makeAnnouncement(funcName, filename, queries, prices, category){
+
+async function makeAnnouncement(filename, category, queries) {
     const dataId = await database.putContent(filename);
-    console.log(dataId + " " + prices + " " + category);
-    const announcementId = await contract.submitTransaction(funcName, dataId, queries, prices, category);
-    const pricesArray = prices.match(/\d+(?:\.\d+)?/g).map(Number);
-    if(announcementId != null){
+
+    const prices = wiki.getQueryPrices(filename);
+    const pricesArray = JSON.parse(prices)
+
+    const announcementId = await contract.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, queries, prices, category);
+
+    if (announcementId != null) {
         const eventName = 'Query:' + announcementId;
         const listener = async (event) => {
             if (event.eventName === eventName) {
                 event = event.payload.toString();
                 event = JSON.parse(event);
-                console.log('Received Query: '+event.queryId);
                 // putResponseLogic
-                const index = pricesArray.findIndex( (price) => price === event.price);
-                const response = index !== -1
-                    ? await getResponse(dataId, index + 1)
-                    : "Offer declined, price didn't match any of the levels";
+                const queryIndex = queries.indexOf(event.query);
+                const response = wiki.getResponseContent(filename, event.query, pricesArray[queryIndex], event.price);
                 const issuer = await contract.submitTransaction('IdentificationContract:GetIdentification', event.issuerId);
-           	    const issuerJson = JSON.parse(issuer);
+                const issuerJson = JSON.parse(issuer);
                 const criptogram = mycrypto.encrypt(response, issuerJson.publicKey);
                 return await contract.submitTransaction('QueryContract:PutResponse', event.queryId, criptogram);
             }
@@ -37,22 +39,21 @@ async function makeAnnouncement(funcName, filename, queries, prices, category){
 }
 
 //Prototype to check query sintax
-function checkQuerySintax(query){
-    if(1==0)
+function checkQuerySintax(query) {
+    if (1 == 0)
         return [false, "Error: Invalid query syntax"];
-    
+
     return [true, null]
 }
 
-async function makeQuery(announcementId, queryArg, price){
+async function makeQuery(funcName, announcementId, queryArg, price) {
     const announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
-    console.log(funcName + " " + announcementId + " " + queryArg + " " + price)
-    if(announcement){
+    if (announcement) {
         //check querySyntax
         const check = checkQuerySintax(queryArg);
-	    if(check[0]){
+        if (check[0]) {
             const queryId = await contract.submitTransaction(funcName, announcementId, queryArg, price);
-            if (queryId != null){
+            if (queryId != null) {
                 const eventName = 'Response:' + queryId;
                 const listener = async (event) => {
                     if (event.eventName === eventName) {
@@ -63,59 +64,59 @@ async function makeQuery(announcementId, queryArg, price){
                         const owner = await contract.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
                         const ownerJson = JSON.parse(owner);
                         const plaintext = mycrypto.decrypt(cryptogram, ownerJson.publicKey);
-                        console.log('Received Response: '+ plaintext);
+                        console.log('Received Response: ' + plaintext);
                     }
                 };
                 await contract.addContractListener(listener);
             }
             return queryId;
-        }else{
+        } else {
             return check[1];
         }
-    }else{
+    } else {
         return "Error: Invalid Announcement ID";
     }
 }
 
 //ir buscar a resposta ao ficheiro na bd, truncar conforme o nivel
-async function getResponse(dataId, level){
+async function getResponse(dataId, level) {
     const content = await database.getContent(dataId);
-    const filePercentage = 0.5*level; //level 1 a 2
-    return content.slice(0, content.length*filePercentage);
+    const filePercentage = 0.5 * level; //level 1 a 2
+    return content.slice(0, content.length * filePercentage);
 }
 
 //deprecated after events implementation
-async function putResponse(funcName, queryid){
-    const query = await contract.submitTransaction('QueryContract:GetQuery',queryid);
-    if(query){
+async function putResponse(funcName, queryid) {
+    const query = await contract.submitTransaction('QueryContract:GetQuery', queryid);
+    if (query) {
         const queryJson = JSON.parse(query);
         const announcementId = queryJson.announcementId;
-        
+
         const announcement = await contract.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
         const announcementJson = JSON.parse(announcement);
-        
-        const prices = announcementJson.prices; 
-        const index = prices.findIndex( (price) => price === queryJson.price);
-	    const response = index !== -1
+
+        const prices = announcementJson.prices;
+        const index = prices.findIndex((price) => price === queryJson.price);
+        const response = index !== -1
             ? await getResponse(announcementJson.dataId, index + 1)
             : "Offer declined, price didn't match any of the levels";
-	    //encrypt response
-	    const issuer = await contract.submitTrabsaction('IdentificationContract:GetIdentification', queryJson.issuerId);
-	    const issuerJson = JSON.parse(issuer)
+        //encrypt response
+        const issuer = await contract.submitTrabsaction('IdentificationContract:GetIdentification', queryJson.issuerId);
+        const issuerJson = JSON.parse(issuer)
         let criptogram = mycrypto.encrypt(response, issuerJson.publicKey)
         return await contract.submitTransaction(funcName, queryid, criptogram);
-    }else{
+    } else {
         return "Error: Query doesn't exist"
     }
 
 }
 
 
-async function makeIdentification(funcName, name, ip){
+async function makeIdentification(funcName, name, ip) {
     let publicKey = mycrypto.generateKeys();
 
     await contract.submitTransaction(funcName, name, ip, publicKey);
-    
+
     return "Your Private-Key is saved under priv.pem, keep it save"
 }
 
@@ -134,7 +135,7 @@ async function getQuery(funcName, queryId) {
 
 async function main() {
     try {
-        
+
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', "fabric-samples", "test-network", "organizations",
             "peerOrganizations", "org1.example.com", 'connection-org1.json');
@@ -169,7 +170,7 @@ async function main() {
         // submit transaction depending on first arg*/
         switch (args[0]) {
             case 'AnnouncementContract:MakeAnnouncement':
-                result = await makeAnnouncement(args[0], args[1], args[2], args[3], args[4]);
+                result = await makeAnnouncement(args[1], args[2], args[3]);
                 break;
             case 'AnnouncementContract:GetAnnouncements':
                 result = await contract.submitTransaction(args[0]);
@@ -184,15 +185,7 @@ async function main() {
                 result = await contract.submitTransaction(args[0], args[1]);
                 break;
             case 'QueryContract:MakeQuery':
-                result = await makeQuery(args[1], args[2], args[3]);
-                break;
-            //deprecated after events implementation
-            case 'QueryContract:PutResponse':
-                result = await putResponse(args[0], args[1]);
-                break;
-            //deprecated after events implementation
-            case 'QueryContract:GetQuery':
-                result = await getQuery(args[0], args[1]);
+                result = await makeQuery(args[0], args[1], args[2], args[3]);
                 break;
             case 'QueryContract:GetQueriesByAnnouncement':
                 result = await contract.submitTransaction(args[0], args[1]);
@@ -228,9 +221,9 @@ async function main() {
     }
 }
 
-main().then(()=>{
+main().then(() => {
     console.log('done');
-}).catch((e)=>{
+}).catch((e) => {
     console.log('Final error checking.......');
     console.log(e);
     console.log(e.stack);
