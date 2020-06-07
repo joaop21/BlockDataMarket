@@ -45,7 +45,7 @@ router.get('/', async function (req, res) {
         res.send({ error: err.toString() })
     }
 
-    res.send({ result: result.toString() });
+    res.send({ result: JSON.parse(result) });
 });
 
 /* POST announcement */
@@ -62,12 +62,13 @@ router.post('/', upload.single('data_file'), async function (req, res) {
             const queryPrices = wiki.getQueryPrices(file.path, queriesArray);
             const pricesArray = JSON.parse(queryPrices)
 
-            const announcementId = await chaincode.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, queries, queryPrices, category)
+            var announcement = await chaincode.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, queries, queryPrices, category)
+            announcement = JSON.parse(announcement)
 
-            res.send({ result: announcementId.toString() });
+            res.send({ result: announcement });
 
-            if (announcementId != null) {
-                const eventName = 'Query:' + announcementId;
+            if (announcement != null) {
+                const eventName = 'Query:' + announcement.announcementId;
                 const listener = async (event) => {
                     if (event.eventName === eventName) {
                         event = event.payload.toString();

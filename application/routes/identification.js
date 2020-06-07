@@ -22,7 +22,7 @@ router.get('/', async function (req, res) {
     var result;
     if (identificationId){
         result = await chaincode.submitTransaction('IdentificationContract:GetIdentification', identificationId);
-        res.send({ result: result.toString() });
+        res.send({ result: JSON.parse(result) });
     }
     else {
         res.status(400).send({error : "No identification Id was provided"})
@@ -38,9 +38,10 @@ router.post('/', upload.none(), async function (req, res) {
         try{
             var publicKey = crypto.generateKeys();
 
-            var result = await chaincode.submitTransaction('IdentificationContract:MakeIdentification', name, '127.0.0.1', publicKey);
-
-            res.send({ result: result.toString() });
+            var identification = await chaincode.submitTransaction('IdentificationContract:MakeIdentification', name, publicKey);
+        
+            res.send({ result: JSON.parse(identification) });
+        
         } catch(err) {
             res.status(400).send({ error: err.toString() });
         }

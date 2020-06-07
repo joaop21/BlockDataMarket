@@ -19,19 +19,14 @@ func (_ *IdentificationContract) Instantiate(_ context.TransactionContextInterfa
 }
 
 // Adds a new Identification to be sell, to the world state with given details
-func (_ *IdentificationContract) MakeIdentification(ctx context.TransactionContextInterface, name string, publicKey string) error {
+func (_ *IdentificationContract) MakeIdentification(ctx context.TransactionContextInterface, name string, publicKey string) (*dataStructs.Identification, error) {
 
 	if ctx.GetIdentification() != nil {
-		return errors.New("submitter already exists")
+		return nil, errors.New("submitter already exists")
 	}
 
 	// create a new Identification
-    identification := dataStructs.Identification{
-		Type:        "Identification",
-		Id: 	     ctx.GetUniqueIdentity(),
-        Name:        name,
-        PublicKey:   publicKey,
-	}
+	identification := dataStructs.NewIdentification(ctx.GetUniqueIdentity(), name, publicKey)
 	
 	identificationAsBytes, _ := utils.Serialize(identification)
 	key, _ := ctx.GetStub().CreateCompositeKey("Identification", []string{
@@ -41,10 +36,16 @@ func (_ *IdentificationContract) MakeIdentification(ctx context.TransactionConte
 	// test if Identification already exists
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
-		return fmt.Errorf("identification already exists")
+		return nil, fmt.Errorf("identification already exists")
 	}
 
-    return ctx.GetStub().PutState(key, identificationAsBytes)
+	err := ctx.GetStub().PutState(key, identificationAsBytes)
+	if err != nil {
+		return nil, errors.New("error putting identification in world state")
+	}
+
+	return identification, nil
+
 }
 
 // Get all existing Identification on world state 
