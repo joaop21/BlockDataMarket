@@ -42,6 +42,7 @@ router.post('/', upload.none(), async function (req, res) {
         
             res.send({ result: JSON.parse(identification) });
         
+
         } catch(err) {
             res.status(400).send({ error: err.toString() });
         }
