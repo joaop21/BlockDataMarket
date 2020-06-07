@@ -32,7 +32,9 @@ router.get('/', async function (req, res) {
     let lt = req.query.lt
 
     try {
-        if (category)
+        if (category && lt)
+            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByCategoryLowerThan', category, lt)
+        else if (category)
             result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByCategory', category)
         else if (ownerId)
             result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByOwner', ownerId)

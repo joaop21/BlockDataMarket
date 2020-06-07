@@ -117,6 +117,24 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx context.Transactio
 	return getAnnouncements(resultsIterator)
 }
 
+// Get Announcements for a category lower than a value
+func (_ *AnnouncementContract) GetAnnouncementsByCategoryLowerThan(ctx context.TransactionContextInterface, categoryName string, value float32) ([]*dataStructs.Announcement, error) {
+	// get all the keys that match with args
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{categoryName})
+	if err != nil {
+		return nil, err
+	}
+	announcements, err2 := getAnnouncements(resultsIterator)
+
+	result := []*dataStructs.Announcement{}
+	for i := range announcements {
+		if hasValidValues(announcements[i], value){
+			result = append(result, announcements[i])
+		}
+	}
+	return result, err2
+}
+
 // Get all Announcements for an owner
 func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx context.TransactionContextInterface, ownerId string) ([]*dataStructs.Announcement, error) {
 	queryString := fmt.Sprintf("{\"selector\":{\"ownerId\":\"%s\"}}", ownerId)
@@ -154,5 +172,16 @@ func convertToAnnouncement(values []interface{}) (announcements []*dataStructs.A
 	announcements = make([]*dataStructs.Announcement, len(values))
 	for i := range values {announcements[i] = values[i].(*dataStructs.Announcement)}
 	return announcements
+}
+
+func hasValidValues(announcement *dataStructs.Announcement, value float32) bool {
+	prices := announcement.QueryPrices
+	for i := range prices {
+		if prices[i] <= value {
+			return true
+		}
+	}
+
+	return false
 }
 
