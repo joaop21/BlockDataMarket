@@ -22,28 +22,28 @@ func (_ *AnnouncementContract) Instantiate(_ context.TransactionContextInterface
 }
 
 // Adds a new Announcement to be sell, to the world state with given details
-func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextInterface, dataId string, queries []string, prices []float32, categoryName string) (string, error) {
+func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextInterface, dataId string, queries []string, prices []float32, categoryName string) (*dataStructs.Announcement, error) {
 
 	identification := ctx.GetIdentification()
 	if identification == nil {
-		return "", errors.New("the submitter has no identification")
+		return nil, errors.New("the submitter has no identification")
 	}
 
 	// check if queries and prices have the same length
 	if len(queries) != len(prices) {
-		return "", errors.New("queries and correspondent prices have not the same length")
+		return nil, errors.New("queries and correspondent prices have not the same length")
 	}
 
 	// check if category exist
 	category, err := new(CategoryContract).GetCategory(ctx, categoryName)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// check if queries are possible
 	for _, query := range queries {
 		if !utils.Contains(category.PossibleQueries, query) {
-			return "", errors.New("query does not exist in category: " + query)
+			return nil, errors.New("query does not exist in category: " + query)
 		}
 	}
 
@@ -51,7 +51,7 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextIn
 	announcement := dataStructs.NewAnnouncement(uuid.New().String(), dataId, ctx.GetIdentification().Id, queries, prices, categoryName, time.Now())
 
 	if announcement == nil {
-		return "", errors.New("error creating announcement")
+		return nil, errors.New("error creating announcement")
 	}
 
 	// create a composite key
@@ -65,15 +65,15 @@ func (_ *AnnouncementContract) MakeAnnouncement(ctx context.TransactionContextIn
 	// test if key already exists
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
-		return "", errors.New("key already exists")
+		return nil, errors.New("key already exists")
 	}
 
 	err = ctx.GetStub().PutState(key, announcementAsBytes)
 	if err != nil {
-		return "", errors.New("error putting announcement in world state")
+		return nil, errors.New("error putting announcement in world state")
 	}
 
-	return announcement.AnnouncementId, nil
+	return announcement, nil
 }
 
 // Get Announcement on world state by id
@@ -117,6 +117,24 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategory(ctx context.Transactio
 	return getAnnouncements(resultsIterator)
 }
 
+// Get Announcements for a category lower than a value
+func (_ *AnnouncementContract) GetAnnouncementsByCategoryLowerThan(ctx context.TransactionContextInterface, categoryName string, value float32) ([]*dataStructs.Announcement, error) {
+	// get all the keys that match with args
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey("Announcement", []string{categoryName})
+	if err != nil {
+		return nil, err
+	}
+	announcements, err2 := getAnnouncements(resultsIterator)
+
+	result := []*dataStructs.Announcement{}
+	for i := range announcements {
+		if hasValidValues(announcements[i], value){
+			result = append(result, announcements[i])
+		}
+	}
+	return result, err2
+}
+
 // Get all Announcements for an owner
 func (_ *AnnouncementContract) GetAnnouncementsByOwner(ctx context.TransactionContextInterface, ownerId string) ([]*dataStructs.Announcement, error) {
 	queryString := fmt.Sprintf("{\"selector\":{\"ownerId\":\"%s\"}}", ownerId)
@@ -154,5 +172,16 @@ func convertToAnnouncement(values []interface{}) (announcements []*dataStructs.A
 	announcements = make([]*dataStructs.Announcement, len(values))
 	for i := range values {announcements[i] = values[i].(*dataStructs.Announcement)}
 	return announcements
+}
+
+func hasValidValues(announcement *dataStructs.Announcement, value float32) bool {
+	prices := announcement.QueryPrices
+	for i := range prices {
+		if prices[i] <= value {
+			return true
+		}
+	}
+
+	return false
 }
 

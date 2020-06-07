@@ -25,7 +25,7 @@ router.get('/', async function (req, res) {
         else {
             result = await chaincode.submitTransaction('CategoryContract:GetCategories');
         }
-        res.send({ result: result.toString() });
+        res.send({ result: JSON.parse(result) });
     }
     catch (err) {
         res.send({ error: err.toString() })

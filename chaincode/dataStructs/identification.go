@@ -7,3 +7,15 @@ type Identification struct {
 	Name      string `json:"name"`
 	PublicKey string `json:"publicKey"`
 }
+
+// Constructor for Identification
+func NewIdentification(id string, name string, publicKey string) *Identification {
+
+	return &Identification{
+		Type:            "Identification",
+		Id:				 id,
+		Name:            name,
+		PublicKey:		 publicKey,
+	}
+
+}

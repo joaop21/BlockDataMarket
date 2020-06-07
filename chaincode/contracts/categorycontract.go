@@ -19,7 +19,7 @@ func (_ *CategoryContract) Instantiate(_ contractapi.TransactionContextInterface
 }
 
 // Adds a new Category for Announcements to use
-func (_ *CategoryContract) MakeCategory(ctx contractapi.TransactionContextInterface, name string, queries []string) (string, error) {
+func (_ *CategoryContract) MakeCategory(ctx contractapi.TransactionContextInterface, name string, queries []string) (*dataStructs.Category, error) {
 
 	// create a composite key
 	key, _ := ctx.GetStub().CreateCompositeKey("Category", []string{name})
@@ -27,7 +27,7 @@ func (_ *CategoryContract) MakeCategory(ctx contractapi.TransactionContextInterf
 	// test if key already exists
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
-		return "", errors.New("category name already exists")
+		return nil, errors.New("category name already exists")
 	}
 
 	// remove equal queries
@@ -35,7 +35,7 @@ func (_ *CategoryContract) MakeCategory(ctx contractapi.TransactionContextInterf
 
 	category := dataStructs.NewCategory(name, uniqueQueries)
 	if category == nil {
-		return "", errors.New("error creating announcement")
+		return nil, errors.New("error creating announcement")
 	}
 
 	// serialize category
@@ -44,10 +44,10 @@ func (_ *CategoryContract) MakeCategory(ctx contractapi.TransactionContextInterf
 	// put category in world state
 	err := ctx.GetStub().PutState(key, categoryAsBytes)
 	if err != nil {
-		return "", errors.New("error putting category in world state")
+		return nil, errors.New("error putting category in world state")
 	}
 
-	return category.Name, nil
+	return category, nil
 }
 
 // Get Category from world state by name

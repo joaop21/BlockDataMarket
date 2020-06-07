@@ -20,21 +20,21 @@ func (_ *QueryContract) Instantiate(_ context.TransactionContextInterface) error
 }
 
 // Adds a new Query to world state
-func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, announcementId string, queryArg string, price float32) (string, error) {
+func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, announcementId string, queryArg string, price float32) (*dataStructs.Query, error) {
 
 	identification := ctx.GetIdentification()
 	if identification == nil {
-		return "", errors.New("the submitter has no identification")
+		return nil, errors.New("the submitter has no identification")
 	}
 
 	// check if announcement exist
 	announcement, err := new(AnnouncementContract).GetAnnouncement(ctx, announcementId)
 	if err != nil || announcement == nil {
-		return "", errors.New("announcement ID does not exist")
+		return nil, errors.New("announcement ID does not exist")
 	}
 
 	if !utils.Contains(announcement.PossibleQueries, queryArg) {
-		return "", errors.New("announcement does not support that kind of query")
+		return nil, errors.New("announcement does not support that kind of query")
 	}
 
 	// create a new Announcement
@@ -51,22 +51,22 @@ func (_ *QueryContract) MakeQuery(ctx context.TransactionContextInterface, annou
 	// test if key already exists
 	obj, _ := ctx.GetStub().GetState(key)
 	if obj != nil {
-		return "", fmt.Errorf("key already exists")
+		return nil, fmt.Errorf("key already exists")
 	}
 
 	// send event with query information in payload
 	eventName := utils.Concat("Query:", announcementId)
 	err = ctx.GetStub().SetEvent(eventName, queryAsBytes)
 	if err != nil {
-		return "", errors.New("event can't be emitted")
+		return nil, errors.New("event can't be emitted")
 	}
 
 	err = ctx.GetStub().PutState(key, queryAsBytes)
 	if err != nil {
-		return "", errors.New("error putting query in world state")
+		return nil, errors.New("error putting query in world state")
 	}
 
-	return query.QueryId, nil
+	return query, nil
 }
 
 // Adds a new Query to world state

@@ -30,7 +30,7 @@ router.get('/', async function (req, res) {
         else
             res.status(400).send({ error: "Neither query, announcement or issuer Id was provided. You must provide one of them as an argument." })
 
-        res.send({ result: result.toString() });
+        res.send({ result: JSON.parse(result) });
     }
     catch (err) {
         res.status(400).send({ error: err.toString() });
@@ -51,10 +51,18 @@ router.post('/', upload.none(), async function (req, res) {
     }
 
     if (announcement) {
-        var queryId = await chaincode.submitTransaction("QueryContract:MakeQuery", announcementId, query, price);
+        var query;
+        try{
+            query = await chaincode.submitTransaction("QueryContract:MakeQuery", announcementId, query, price);
+            query = JSON.parse(query.toString())
+        }
+        catch (err){
+            res.status(400).send({ Error: err.toString() });
+        }
 
-        if (queryId != null) {
-            const eventName = 'Response:' + queryId;
+        if (query != null) {
+            console.log( 'Response:' + query.queryId)
+            const eventName = 'Response:' + query.queryId;
             const listener = async (event) => {
                 if (event.eventName === eventName) {
                     event = event.payload.toString();
@@ -68,8 +76,6 @@ router.post('/', upload.none(), async function (req, res) {
                 }
             };
             await chaincode.addContractListener(listener);
-        } else {
-            res.status(400).send({ Error: "Invalid Query Syntax" });
         }
     }
 });
