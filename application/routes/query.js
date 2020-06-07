@@ -3,7 +3,7 @@ const router = express.Router();
 const app = require('../app');
 const multer = require('multer')
 const upload = multer()
-
+const crypto = require('../scripts/crypto')
 var chaincode;
 
 router.use(async function (req, res, next) {
@@ -19,10 +19,6 @@ router.get('/', async function (req, res) {
     var queryId = req.query.queryId
     var issuerId = req.query.issuerId
 
-    console.log(announcementId)
-    console.log(queryId)
-    console.log(issuerId)
-
     var result;
     try {
         if (queryId)
@@ -37,43 +33,47 @@ router.get('/', async function (req, res) {
         res.send({ result: result.toString() });
     }
     catch (err) {
-        res.send({ error: err.toString() });
+        res.status(400).send({ error: err.toString() });
     }
 });
 
 /* POST query */
 router.post('/', upload.none(), async function (req, res) {
     var announcementId = req.body.announcementId
-    var queryArg = req.body.queryArg
+    var query = req.body.query
     var price = req.body.price
-
-    console.log(req.body)
 
     var announcement;
     try {
         announcement = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
     } catch (err) {
-        res.send({ Error: "Invalid Announcement ID" });
+        res.status(400).send({ Error: "Invalid Announcement ID" });
     }
 
     if (announcement) {
-        const check = checkQuerySintax(queryArg);
-        if (check) {
-            var result = await chaincode.submitTransaction("QueryContract:MakeQuery", announcementId, queryArg, price);
-            res.send({ result: result.toString() });
+        var queryId = await chaincode.submitTransaction("QueryContract:MakeQuery", announcementId, query, price);
+
+        if (queryId != null) {
+            const eventName = 'Response:' + queryId;
+            const listener = async (event) => {
+                if (event.eventName === eventName) {
+                    event = event.payload.toString();
+                    event = JSON.parse(event);
+                    const cryptogram = event.response;
+                    const announcementJson = JSON.parse(announcement);
+                    const owner = await chaincode.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
+                    const ownerJson = JSON.parse(owner);
+                    const plaintext = crypto.decrypt(cryptogram, ownerJson.publicKey);
+                    res.send({ result: plaintext });
+                }
+            };
+            await chaincode.addContractListener(listener);
         } else {
-            res.send({ Error: "Invalid Query Syntax" });
+            res.status(400).send({ Error: "Invalid Query Syntax" });
         }
     }
 });
 
 
-//Prototype to check query sintax
-function checkQuerySintax(query) {
-    if (1 == 0)
-        return false;
-
-    return true;
-}
 
 module.exports = router;

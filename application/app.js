@@ -8,6 +8,7 @@ var indexRouter = require('./routes/index');
 var announcementRouter = require('./routes/announcement');
 var queryRouter = require('./routes/query');
 var identificationRouter = require('./routes/identification');
+var categoryRouter = require('./routes/category');
 
 
 var chaincode = null;
@@ -26,10 +27,10 @@ app.use(cookieParser());
 app.disable('etag'); // serve para impedir que sejam enviadas respostas com HTTP Status 304
 
 app.use('/', indexRouter);
-app.use('/announcements', announcementRouter);
+app.use('/announcement', announcementRouter);
 app.use('/query', queryRouter);
 app.use('/identification', identificationRouter);
-
+app.use('/category', categoryRouter);
 
 
 // catch 404 and forward to error handler

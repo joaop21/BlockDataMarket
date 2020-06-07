@@ -19,7 +19,7 @@ func (_ *IdentificationContract) Instantiate(_ context.TransactionContextInterfa
 }
 
 // Adds a new Identification to be sell, to the world state with given details
-func (_ *IdentificationContract) MakeIdentification(ctx context.TransactionContextInterface, name string, ip string, publicKey string) error {
+func (_ *IdentificationContract) MakeIdentification(ctx context.TransactionContextInterface, name string, publicKey string) error {
 
 	if ctx.GetIdentification() != nil {
 		return errors.New("submitter already exists")
@@ -30,7 +30,6 @@ func (_ *IdentificationContract) MakeIdentification(ctx context.TransactionConte
 		Type:        "Identification",
 		Id: 	     ctx.GetUniqueIdentity(),
         Name:        name,
-        Ip:          ip,
         PublicKey:   publicKey,
 	}
 	
