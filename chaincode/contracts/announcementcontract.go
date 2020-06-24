@@ -218,6 +218,13 @@ func (_ *AnnouncementContract) UpdateQueryPrices(ctx context.TransactionContextI
 		return nil, errors.New("error putting announcement in world state")
 	}
 
+	// send event with query information in payload
+	eventName := utils.Concat("Update:", announcementId)
+	err = ctx.GetStub().SetEvent(eventName, announcementAsBytes)
+	if err != nil {
+		return nil, errors.New("event can't be emitted")
+	}
+
 	//build result
 	var result map[string]float32
 	result = make(map[string]float32)
