@@ -1,9 +1,10 @@
 const fs = require('fs');
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
+const database = require('./database');
 
-function loadDocData(filename) {
-    const data = fs.readFileSync(filename)
+async function loadDocData(dataId) {
+    const data = await database.getContent(dataId);
 
     parser.parseString(data.toString(), function (err, result) {
         doc = result.doc
@@ -21,8 +22,8 @@ function loadDocData(filename) {
     }
 }
 
-function getQueryPrices(filename, queries) {
-    var doc = loadDocData(filename)
+async function getQueryPrices(dataId, queries) {
+    var doc = await loadDocData(dataId)
 
     var prices = {
         titlePrice: doc.title.length,
@@ -49,8 +50,8 @@ function getQueryPrices(filename, queries) {
     return priceArray
 }
 
-function getResponseContent(filename, query, queryPrice, pricePaid) {
-    var doc = loadDocData(filename);
+async function getResponseContent(dataId, query, queryPrice, pricePaid) {
+    var doc = await loadDocData(dataId);
     var field;
 
     const percentage = pricePaid / queryPrice;

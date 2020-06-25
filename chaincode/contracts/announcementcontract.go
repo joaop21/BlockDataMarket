@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"strconv"
 	"time"
 )
 
@@ -153,6 +154,85 @@ func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx context.Transaction
 		return nil, err
 	}
 	return getAnnouncements(resultsIterator)
+}
+
+// Update an Announcement with new prices
+func (_ *AnnouncementContract) UpdateQueryPrices(ctx context.TransactionContextInterface, announcementId string, updates [][]string) (map[string]float32, error) {
+
+	// to change something has to have an identification
+	identification := ctx.GetIdentification()
+	if identification == nil {
+		return nil, errors.New("the submitter has no identification")
+	}
+
+	// get the announcement
+	announcement, err := new(AnnouncementContract).GetAnnouncement(ctx, announcementId)
+	if err != nil {
+		return nil, err
+	}
+
+	// check the id of the changer
+	if announcement.OwnerId != ctx.GetIdentification().Id {
+		return nil, errors.New("the changer is not the owner of the announcement")
+	}
+
+	// update prices
+	lengthPQ := len(announcement.PossibleQueries)
+	for _, pair := range updates {
+
+		if len(pair) != 2 {
+			return nil, errors.New("bad input")
+		}
+
+		price, err := strconv.ParseFloat(pair[1], 32)
+		if err != nil {
+			return nil, errors.New("bad input, price isn't float:  " + err.Error())
+		}
+
+		has := false
+		for i := 0 ; i < lengthPQ; i++ {
+			if pair[0] == announcement.PossibleQueries[i] {
+				announcement.QueryPrices[i] = float32(price)
+				has = true
+				break
+			}
+		}
+
+		if !has {
+			return nil, errors.New("query doesn't exist in the list of possible queries")
+		}
+
+	}
+
+	// create a composite key
+	announcementAsBytes, _ := utils.Serialize(announcement)
+	key, _ := ctx.GetStub().CreateCompositeKey("Announcement", []string{
+		announcement.DataCategory,
+		announcement.OwnerId,
+		announcement.AnnouncementId,
+	})
+
+	// put in the world state
+	err = ctx.GetStub().PutState(key, announcementAsBytes)
+	if err != nil {
+		return nil, errors.New("error putting announcement in world state")
+	}
+
+	// send event with query information in payload
+	eventName := utils.Concat("Update:", announcementId)
+	err = ctx.GetStub().SetEvent(eventName, announcementAsBytes)
+	if err != nil {
+		return nil, errors.New("event can't be emitted")
+	}
+
+	//build result
+	var result map[string]float32
+	result = make(map[string]float32)
+	for i := 0 ; i < lengthPQ ; i++ {
+		result[announcement.PossibleQueries[i]] = announcement.QueryPrices[i]
+	}
+
+	return result, nil
 }
 
 // Auxiliary function for repeating code
