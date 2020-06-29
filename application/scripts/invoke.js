@@ -162,7 +162,7 @@ async function main() {
         const network = await gateway.getNetwork('mychannel');
 
         // Get the chaincode from the network.
-        contract = network.getContract('dataMarket');
+        contract = network.getContract('dataMarket', 1);
 
         // accept args from stdin
         const args = process.argv.slice(2);
