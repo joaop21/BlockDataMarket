@@ -12,7 +12,7 @@ async function getContract(orgNumber) {
     const walletPath = path.join(process.cwd(), 'walletOrg' + orgNumber);
     const wallet = await Wallets.newFileSystemWallet(walletPath);
     console.log(`Wallet path: ${walletPath}`);
-
+    console.log(orgNumber);
     // Check to see if we've already enrolled the user.
     const identity = await wallet.get('admin');
     if (!identity) {

@@ -116,7 +116,6 @@ async function makeIdentification(funcName, name, ip) {
     let publicKey = mycrypto.generateKeys();
 
     await contract.submitTransaction(funcName, name, ip, publicKey);
-
     return "Your Private-Key is saved under priv.pem, keep it save"
 }
 
@@ -138,11 +137,11 @@ async function main() {
 
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', "fabric-samples", "test-network", "organizations",
-            "peerOrganizations", "org1.example.com", 'connection-org1.json');
+            "peerOrganizations", "org2.example.com", 'connection-org2.json');
         let ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
         // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(), 'walletOrg1');
+        const walletPath = path.join(process.cwd(), 'walletOrg2');
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
@@ -155,15 +154,12 @@ async function main() {
         }
 
         // Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
+	const gateway = new Gateway();
         await gateway.connect(ccp, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
-
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
-
         // Get the chaincode from the network.
-        contract = network.getContract('dataMarket', 1);
-
+        contract = network.getContract('dataMarket');
         // accept args from stdin
         const args = process.argv.slice(2);
         let result = null;
