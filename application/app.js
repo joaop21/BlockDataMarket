@@ -17,8 +17,8 @@ module.exports.getChaincode = async function getChaincode() {
     chaincode = await getContract(process.env.ORGNUMBER);
   return chaincode;  
 }
-
-app.set('port', process.env.PORT || 3000)
+var app = express();
+app.set('port', process.env.PORT || 3000);
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
