@@ -5,17 +5,18 @@ const g = '02'
 var dh = crypto.createDiffieHellman(p, g);
 const algorithm = 'aes-256-cbc'
 
-function generateKeys(x) {
+function generateKeys() {
     publicKey = dh.generateKeys()
     privateKey = dh.getPrivateKey()
-    fs.writeFileSync('./priv' + x, privateKey);
+    fs.writeFileSync('./priv' + process.env.ORGNUMBER, privateKey);
 
     return publicKey
 }
 
-function decrypt(cryptogram, publicKey, x) {
-    privateKey = fs.readFileSync('./priv' + x,'base64')
-    dh.setPrivateKey(privateKey, 'base64')
+function decrypt(cryptogram, publicKey) {
+    publicKey = Buffer.from(JSON.parse(publicKey).data)
+    privateKey = fs.readFileSync('./priv' + process.env.ORGNUMBER)
+    dh.setPrivateKey(privateKey)
     sharedKey = dh.computeSecret(publicKey)
     sharedKeyHash = crypto.createHash('sha256').update(sharedKey).digest()
     const iv = Buffer.alloc(16, 0); 
@@ -26,9 +27,10 @@ function decrypt(cryptogram, publicKey, x) {
     return plaintext
 }
 
-function encrypt(plaintext, publicKey, x) {
-    privateKey = fs.readFileSync('./priv' + x,'base64')
-    dh.setPrivateKey(privateKey, 'base64')
+function encrypt(plaintext, publicKey) {
+    publicKey = Buffer.from(JSON.parse(publicKey).data)
+    privateKey = fs.readFileSync('./priv' + process.env.ORGNUMBER)
+    dh.setPrivateKey(privateKey)
     sharedKey = dh.computeSecret(publicKey)
     sharedKeyHash = crypto.createHash('sha256').update(sharedKey).digest()
     const iv = Buffer.alloc(16, 0); 
@@ -53,4 +55,4 @@ function main(){
     console.log(decrypt(c, pk1, '2'))
 }
 
-main();
+
