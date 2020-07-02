@@ -22,14 +22,14 @@ router.get('/', async function (req, res) {
     var result;
     try {
         if (queryId) {
-            result = await chaincode.submitTransaction('QueryContract:GetQuery', queryId);
+            result = await chaincode.evaluateTransaction('QueryContract:GetQuery', queryId);
 
             try {
                 const resultJson = JSON.parse(result);
-                const announcement = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncement', resultJson.announcementId);
+                const announcement = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncement', resultJson.announcementId);
                 const cryptogram = resultJson.response;
                 const announcementJson = JSON.parse(announcement);
-                const owner = await chaincode.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
+                const owner = await chaincode.evaluateTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
                 const ownerJson = JSON.parse(owner);
                 resultJson.response = crypto.decrypt(cryptogram, ownerJson.publicKey);
                 result = JSON.stringify(resultJson)
