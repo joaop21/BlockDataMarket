@@ -21,7 +21,7 @@ router.get('/', async function (req, res) {
 
     var result;
     if (identificationId){
-        result = await chaincode.submitTransaction('IdentificationContract:GetIdentification', identificationId);
+        result = await chaincode.evaluateTransaction('IdentificationContract:GetIdentification', identificationId);
         res.send({ result: JSON.parse(result) });
     }
     else {

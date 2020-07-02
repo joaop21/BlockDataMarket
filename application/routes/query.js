@@ -39,9 +39,9 @@ router.get('/', async function (req, res) {
 
         }
         else if (announcementId)
-            result = await chaincode.submitTransaction('QueryContract:GetQueriesByAnnouncement', announcementId);
+            result = await chaincode.evaluateTransaction('QueryContract:GetQueriesByAnnouncement', announcementId);
         else if (issuerId)
-            result = await chaincode.submitTransaction('QueryContract:GetQueriesByIssuer', issuerId);
+            result = await chaincode.evaluateTransaction('QueryContract:GetQueriesByIssuer', issuerId);
         else
             res.status(400).send({ error: "Neither query, announcement or issuer Id was provided. You must provide one of them as an argument." })
 
@@ -60,7 +60,7 @@ router.post('/', upload.none(), async function (req, res) {
 
     var announcement;
     try {
-        announcement = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncement', announcementId);
+        announcement = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncement', announcementId);
     } catch (err) {
         res.status(400).send({ Error: "Invalid Announcement ID" });
     }
@@ -84,7 +84,7 @@ router.post('/', upload.none(), async function (req, res) {
                     event = JSON.parse(event);
                     const cryptogram = event.response;
                     const announcementJson = JSON.parse(announcement);
-                    const owner = await chaincode.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
+                    const owner = await chaincode.evaluateTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
                     const ownerJson = JSON.parse(owner);
                     const plaintext = crypto.decrypt(cryptogram, ownerJson.publicKey);
                     res.send({ result: plaintext });

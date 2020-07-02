@@ -33,15 +33,15 @@ router.get('/', async function (req, res) {
 
     try {
         if (category && lt)
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByCategoryLowerThan', category, lt)
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncementsByCategoryLowerThan', category, lt)
         else if (category)
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByCategory', category)
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncementsByCategory', category)
         else if (ownerId)
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByOwner', ownerId)
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncementsByOwner', ownerId)
         else if (lt)
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsLowerThan', lt)
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncementsLowerThan', lt)
         else
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncements')
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncements')
     }
     catch (err) {
         res.send({ error: err.toString() })
@@ -79,7 +79,7 @@ router.post('/', upload.single('data_file'), async function (req, res) {
                         // putResponseLogic
                         const queryIndex = queriesArray.indexOf(event.query);
                         const response = await wiki.getResponseContent(dataId, event.query, prices[queryIndex], event.price);
-                        const issuer = await chaincode.submitTransaction('IdentificationContract:GetIdentification', event.issuerId);
+                        const issuer = await chaincode.evaluateTransaction('IdentificationContract:GetIdentification', event.issuerId);
                         const issuerJson = JSON.parse(issuer);
                         const criptogram = crypto.encrypt(response, issuerJson.publicKey);
                         return await chaincode.submitTransaction('QueryContract:PutResponse', event.queryId, criptogram);
