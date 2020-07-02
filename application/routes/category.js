@@ -23,7 +23,7 @@ router.get('/', async function (req, res) {
             result = await chaincode.evaluateTransaction('CategoryContract:GetCategory', categoryName);
         }
         else {
-            result = await chaincode.evaluateTransaction('CategoryContract:GetCategories');
+            result = await chaincode.submitTransaction('CategoryContract:GetCategories');
         }
         res.send({ result: JSON.parse(result) });
     }
