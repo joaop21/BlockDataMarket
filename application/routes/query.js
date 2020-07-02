@@ -21,8 +21,23 @@ router.get('/', async function (req, res) {
 
     var result;
     try {
-        if (queryId)
+        if (queryId) {
             result = await chaincode.submitTransaction('QueryContract:GetQuery', queryId);
+
+            try {
+                const resultJson = JSON.parse(result);
+                const announcement = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncement', resultJson.announcementId);
+                const cryptogram = resultJson.response;
+                const announcementJson = JSON.parse(announcement);
+                const owner = await chaincode.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
+                const ownerJson = JSON.parse(owner);
+                resultJson.response = crypto.decrypt(cryptogram, ownerJson.publicKey);
+                result = JSON.stringify(resultJson)
+            } catch (err) {
+                res.status(400).send({ Error: "Invalid Announcement ID" });
+            }
+
+        }
         else if (announcementId)
             result = await chaincode.submitTransaction('QueryContract:GetQueriesByAnnouncement', announcementId);
         else if (issuerId)
