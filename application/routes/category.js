@@ -40,7 +40,7 @@ router.post('/', upload.none(), async function (req, res) {
     if (name && queries) {
         try {
             var result = await chaincode.submitTransaction('CategoryContract:MakeCategory', name, queries);
-            res.send({ result: result.toString() });
+            res.send({ result: JSON.parse(result) });
         } catch (err) {
             res.status(400).send({ error: err.toString() });
         }
