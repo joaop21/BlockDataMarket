@@ -14,17 +14,21 @@ function generateKeys() {
 }
 
 function decrypt(cryptogram, publicKey) {
-    publicKey = Buffer.from(JSON.parse(publicKey).data)
-    privateKey = fs.readFileSync('./priv' + process.env.ORGNUMBER)
-    dh.setPrivateKey(privateKey)
-    sharedKey = dh.computeSecret(publicKey)
-    sharedKeyHash = crypto.createHash('sha256').update(sharedKey).digest()
-    const iv = Buffer.alloc(16, 0); 
-    decipher = crypto.createDecipheriv(algorithm, sharedKeyHash, iv);
-    let plaintext = decipher.update(cryptogram,'binary','utf8');
-    plaintext += decipher.final('utf8');
+    try{
+        publicKey = Buffer.from(JSON.parse(publicKey).data)
+        privateKey = fs.readFileSync('./priv' + process.env.ORGNUMBER)
+        dh.setPrivateKey(privateKey)
+        sharedKey = dh.computeSecret(publicKey)
+        sharedKeyHash = crypto.createHash('sha256').update(sharedKey).digest()
+        const iv = Buffer.alloc(16, 0);
+        decipher = crypto.createDecipheriv(algorithm, sharedKeyHash, iv);
+        let plaintext = decipher.update(cryptogram,'binary','utf8');
+        plaintext += decipher.final('utf8');
 
-    return plaintext
+        return plaintext
+    } catch (e) {
+        return cryptogram
+    }
 }
 
 function encrypt(plaintext, publicKey) {
