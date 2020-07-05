@@ -64,7 +64,6 @@ async function makeQuery(funcName, announcementId, queryArg, price) {
                         const owner = await contract.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
                         const ownerJson = JSON.parse(owner);
                         const plaintext = mycrypto.decrypt(cryptogram, ownerJson.publicKey);
-                        console.log('Received Response: ' + plaintext);
                     }
                 };
                 await contract.addContractListener(listener);

@@ -89,7 +89,6 @@ router.post('/', upload.single('data_file'), async function (req, res) {
                 }
             }
         } catch (err) {
-            console.log(err.toString())
             res.status(400).send({ error: err.toString() });
         }
     }

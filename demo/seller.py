@@ -2,7 +2,7 @@ import aiohttp
 import asyncio
 import pprint
 import random
-import api
+from api import API
 import sys
 import os
 import argparse
@@ -16,8 +16,8 @@ dir = './docs'
 
 class Seller:
 
-    def __init__(self, id, category, session):
-        self.session = session
+    def __init__(self, id, category, api):
+        self.api = api
         self.category = category
         self.id = id
         self.announcement = {}
@@ -28,45 +28,28 @@ class Seller:
         queries = random.sample(self.category['possibleQueries'], numQueries)
         filename = random.choice(os.listdir(dir))
         filePath = os.path.join(dir, filename)
-        announcement = await api.makeAnnouncement(self.session, filePath, filename, self.category['name'], queries)
+        announcement = await self.api.makeAnnouncement(filePath, filename, self.category['name'], queries)
         return announcement
 
     async def updatePrices(self):
-        announcementQueries, error = await api.getQueriesByAnnouncement(self.session, self.announcement['announcementId'])
+        announcementQueries, error = await self.api.getQueriesByAnnouncement(self.announcement['announcementId'])
         if not error:
             newQueries = [query for query in announcementQueries if query not in self.processedQueries]
-            now = datetime.now()
-            current_time = now.strftime("%H:%M:%S")
-            print(current_time + " SELLER")
-            print("PROCESSED QUERIES " + str(len(self.processedQueries)))
-            print("NEW QUERIES " + str(len(newQueries)))
-            print("TOTAL " + str(len(announcementQueries)))
             nrQueries = dict(zip(self.announcement['possibleQueries'], np.zeros(len(self.announcement['possibleQueries']))))
             for query in newQueries:
                 nrQueries[query['query']]+=1
                 self.processedQueries.append(query)
-            pp.pprint(nrQueries)
             prices = dict(zip(self.announcement['possibleQueries'], self.announcement['prices']))
-            pp.pprint(prices)
+            old_prices = prices.copy()
             for query in nrQueries.items():
                 if(query[1] == 0):
                     prices[query[0]]*=0.9
                 else:
                     prices[query[0]]*=(1+ 0.05*query[1])
-            pp.pprint(prices)
-            self.announcement = await api.updatePrices(self.session, self.announcement['announcementId'], prices)
-            pp.pprint(self.announcement)
+            self.announcement = await self.api.updatePrices(self.announcement['announcementId'], prices)
+            printOp(self.id, self.announcement['announcementId'], old_prices, prices)
 
-
-
-
-            
-
-
-
-        
     async def lifeCycle(self, numOps):
-        pp.pprint("Seller " + str(self.id))
         for _ in range(numOps):
             if not self.announcement:
                 announcement = await self.makeAnnouncement()
@@ -74,39 +57,34 @@ class Seller:
                     self.announcement = announcement
             else:
                 await asyncio.sleep(10)
-                await self.updatePrices()
+                await self.updatePrices() 
+            
 
-            '''        
-            try:
-                op = random.random()
-                if op < 0.3:
-                    await self.cheaperQuery()
-                elif op < 0.6:
-                    await self.randomQuery()
-                elif op < 0.8:
-                    await self.queryLowerThan()
-                elif op < 0.9:
-                    await self.consultPreviousQueries()
-                else:
-                    await self.consultPreviousQuery()
-            except:
-                pass    
-            '''    
-async def main(nSellers, categoryName):
+def printOp(id, announcementId, old_prices, new_prices):
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    print(current_time + " -> Seller " + str(id) + " changed prices on announcement " + announcementId)
+    pp.pprint("Old Prices: " + str(old_prices))
+    pp.pprint("New Prices: " + str(new_prices))
+        
+async def main(api_url, sellers, actions, categoryName):
     async with aiohttp.ClientSession() as session:
+        api = API(api_url, session)
         tasks = []
-        category, _ = await api.getCategoryByName(session, categoryName)
-        for i in range(nSellers):
-            seller = Seller(i, category, session)
-            task = asyncio.create_task(seller.lifeCycle(10))
+        category, _ = await api.getCategoryByName(categoryName)
+        for i in range(sellers):
+            seller = Seller(i, category, api)
+            task = asyncio.create_task(seller.lifeCycle(actions))
             tasks.append(task)
         await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Simulate seller behaviour')
-    parser.add_argument("-n", type=int, default=10, dest='nSellers', help='number of sellers')
+    parser.add_argument("-n", "-sellers", type=int, default=10, dest='sellers', help='number of sellers')
     parser.add_argument("-c", "--category", default="Wikipedia", dest='categoryName', help='name of the category')
-    parser.add_argument("-d", "--directory", default="'./docs'", dest='dir', help='path of dir containing data docs')
+    parser.add_argument("-d", "--directory", default="./docs", dest='dir', help='path of dir containing data docs')
+    parser.add_argument("-a", "--actions", type=int, default=10, dest='actions', help='number of actions')
+    parser.add_argument("-u", "--url" , default="http://localhost:3000", dest='api_url', help='URL of running API')
     args = parser.parse_args()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main(args.nSellers, args.categoryName))
+    loop.run_until_complete(main(args.api_url, args.sellers, args.actions, args.categoryName))

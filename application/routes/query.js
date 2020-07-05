@@ -79,7 +79,6 @@ router.post('/', upload.none(), async function (req, res) {
         }
 
         if (query != null) {
-            console.log( 'Response:' + query.queryId)
             const eventName = 'Response:' + query.queryId;
             const listener = async (event) => {
                 if (event.eventName === eventName) {
