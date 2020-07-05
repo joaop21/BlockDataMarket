@@ -20,10 +20,10 @@ router.get('/', async function (req, res) {
     var result;
     try {
         if (categoryName) {
-            result = await chaincode.submitTransaction('CategoryContract:GetCategory', categoryName);
+            result = await chaincode.evaluateTransaction('CategoryContract:GetCategory', categoryName);
         }
         else {
-            result = await chaincode.submitTransaction('CategoryContract:GetCategories');
+            result = await chaincode.evaluateTransaction('CategoryContract:GetCategories');
         }
         res.send({ result: JSON.parse(result) });
     }
@@ -40,7 +40,7 @@ router.post('/', upload.none(), async function (req, res) {
     if (name && queries) {
         try {
             var result = await chaincode.submitTransaction('CategoryContract:MakeCategory', name, queries);
-            res.send({ result: result.toString() });
+            res.send({ result: JSON.parse(result) });
         } catch (err) {
             res.status(400).send({ error: err.toString() });
         }

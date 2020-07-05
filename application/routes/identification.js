@@ -21,7 +21,7 @@ router.get('/', async function (req, res) {
 
     var result;
     if (identificationId){
-        result = await chaincode.submitTransaction('IdentificationContract:GetIdentification', identificationId);
+        result = await chaincode.evaluateTransaction('IdentificationContract:GetIdentification', identificationId);
         res.send({ result: JSON.parse(result) });
     }
     else {
@@ -37,8 +37,8 @@ router.post('/', upload.none(), async function (req, res) {
     if (name) {
         try{
             var publicKey = crypto.generateKeys();
-
-            var identification = await chaincode.submitTransaction('IdentificationContract:MakeIdentification', name, publicKey);
+	    var pbJson = JSON.stringify(publicKey);
+            var identification = await chaincode.submitTransaction('IdentificationContract:MakeIdentification', name, pbJson);
         
             res.send({ result: JSON.parse(identification) });
         

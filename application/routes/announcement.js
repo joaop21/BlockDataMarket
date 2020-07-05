@@ -25,15 +25,15 @@ router.get('/', async function (req, res) {
 
     try {
         if (category && lt)
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByCategoryLowerThan', category, lt)
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncementsByCategoryLowerThan', category, lt)
         else if (category)
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByCategory', category)
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncementsByCategory', category)
         else if (ownerId)
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsByOwner', ownerId)
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncementsByOwner', ownerId)
         else if (lt)
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncementsLowerThan', lt)
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncementsLowerThan', lt)
         else
-            result = await chaincode.submitTransaction('AnnouncementContract:GetAnnouncements')
+            result = await chaincode.evaluateTransaction('AnnouncementContract:GetAnnouncements')
     }
     catch (err) {
         res.send({ error: err.toString() })
@@ -60,7 +60,6 @@ router.post('/', upload.single('data_file'), async function (req, res) {
 
                 var announcement = await chaincode.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, queries, queryPrices, category)
                 announcement = JSON.parse(announcement)
-
                 res.send({ result: announcement });
                 if (announcement != null) {
                     const eventName1 = 'Query:' + announcement.announcementId;

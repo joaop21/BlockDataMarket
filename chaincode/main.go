@@ -17,9 +17,6 @@ func main() {
 	identificationContract.TransactionContextHandler = new(context.TransactionContext)
 	identificationContract.BeforeTransaction = context.SearchIdentitiesHandler
 
-	//purchaseContract := new(contracts.PurchaseContract)
-	//purchaseContract.Name = "PurchaseContract"
-
 	queryContract := new(contracts.QueryContract)
 	queryContract.Name = "QueryContract"
 	queryContract.TransactionContextHandler = new(context.TransactionContext)
