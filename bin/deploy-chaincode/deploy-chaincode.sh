@@ -50,7 +50,12 @@ done
 
 pp_info "Deploy" "Package the smart contract"
 cd ../../chaincode/
-rm go.mod go.sum
+if [ -f "go.mod" ]; then
+    rm go.mod
+fi
+if [ -f "go.sum" ]; then
+    rm go.sum
+fi
 go mod init $PACKAGE_NAME
 export GO111MODULE=on
 go mod vendor
