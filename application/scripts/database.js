@@ -3,6 +3,7 @@ const mongo = require('mongodb');
 const { v1: uuidv1 } = require('uuid');
 const config = require('../config.json');
 const fs = require('fs');
+const wikiUtils = require('./wikiUtils')
 
 // Connection URL
 const MongoClient = mongo.MongoClient(config.database.url, { useUnifiedTopology: true });
@@ -32,17 +33,18 @@ const connect = new Promise((returnedValue) => {
 
 
 // exports this function to put data in DB
-module.exports.putContent = async function (filepath) {
-  let dbconn = await connect;
-  const content = fs.readFileSync(filepath, 'utf8');
-  const uuid1 = uuidv1();
-  const data = {
-    dataID: uuid1,
-    filepath: filepath,
-    content: content
-  };
-  dbconn.collection(config.database.collection).insertOne(data);
-  return uuid1
+module.exports.putContent = async function (content) {
+  if (wikiUtils.parseDocData(content) != -1) {
+    let dbconn = await connect;
+    const uuid1 = uuidv1();
+    const data = {
+      dataID: uuid1,
+      content: content
+    };
+    dbconn.collection(config.database.collection).insertOne(data);
+    return uuid1;
+  }
+  else return -1;
 };
 
 // exports this function to get data from DB
@@ -54,7 +56,8 @@ module.exports.getContent = (dataID) => {
     };
 
     dbconn.collection(config.database.collection).findOne(criteria)
-        .then(result => res(result.content))
-        .catch(err => console.error(err));
+      .then(result => res(result.content))
+      .catch(err => console.error(err));
+
   });
 };

@@ -4,15 +4,7 @@ const app = require('../app')
 const database = require('../scripts/database');
 const wiki = require('../scripts/wikiUtils')
 const multer = require('multer')
-const path = require('path');
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../uploads'))
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname)
-    }
-})
+const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 const crypto = require('../scripts/crypto')
 
@@ -57,58 +49,61 @@ router.post('/', upload.single('data_file'), async function (req, res) {
     let category = req.body.category
 
     if (file && queries && category) {
-        try{
+        try {
             queriesArray = JSON.parse(queries)
+            const dataId = await database.putContent(file.buffer);
+            if (dataId == -1)
+                res.status(400).send({ error: "Could not process submitted file. Try again" });
+            else {
+                const queryPrices = await wiki.getQueryPrices(file.buffer, queriesArray);
+                let prices = JSON.parse(queryPrices)
 
-            const dataId = await database.putContent(file.path);
-            const queryPrices = await wiki.getQueryPrices(dataId, queriesArray);
-            let prices = JSON.parse(queryPrices)
-
-            var announcement = await chaincode.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, queries, queryPrices, category)
-            announcement = JSON.parse(announcement)
-
-            res.send({ result: announcement });
-            if (announcement != null) {
-                const eventName1 = 'Query:' + announcement.announcementId;
-                const eventName2 = 'Update:' + announcement.announcementId;
-                const listener = async (event) => {
-                    // query arrives
-                    if (event.eventName === eventName1) {
-                        event = event.payload.toString();
-                        event = JSON.parse(event);
-                        // putResponseLogic
-                        const queryIndex = queriesArray.indexOf(event.query);
-                        const response = await wiki.getResponseContent(dataId, event.query, prices[queryIndex], event.price);
-                        const issuer = await chaincode.evaluateTransaction('IdentificationContract:GetIdentification', event.issuerId);
-                        const issuerJson = JSON.parse(issuer);
-                        const criptogram = crypto.encrypt(response, issuerJson.publicKey);
-                        return await chaincode.submitTransaction('QueryContract:PutResponse', event.queryId, criptogram);
-                    }
-                    // changes arrives
-                    else if (event.eventName === eventName2) {
-                        event = event.payload.toString();
-                        event = JSON.parse(event);
-                        // change pricesArray
-                        prices = event.prices
-                    }
-                };
-                await chaincode.addContractListener(listener);
+                var announcement = await chaincode.submitTransaction('AnnouncementContract:MakeAnnouncement', dataId, queries, queryPrices, category)
+                announcement = JSON.parse(announcement)
+                res.send({ result: announcement });
+                if (announcement != null) {
+                    const eventName1 = 'Query:' + announcement.announcementId;
+                    const eventName2 = 'Update:' + announcement.announcementId;
+                    const listener = async (event) => {
+                        // query arrives
+                        if (event.eventName === eventName1) {
+                            event = event.payload.toString();
+                            event = JSON.parse(event);
+                            // putResponseLogic
+                            const queryIndex = queriesArray.indexOf(event.query);
+                            const response = await wiki.getResponseContent(dataId, event.query, prices[queryIndex], event.price);
+                            const issuer = await chaincode.submitTransaction('IdentificationContract:GetIdentification', event.issuerId);
+                            const issuerJson = JSON.parse(issuer);
+                            const criptogram = crypto.encrypt(response, issuerJson.publicKey);
+                            return await chaincode.submitTransaction('QueryContract:PutResponse', event.queryId, criptogram);
+                        }
+                        // changes arrives
+                        else if (event.eventName === eventName2) {
+                            event = event.payload.toString();
+                            event = JSON.parse(event);
+                            // change pricesArray
+                            prices = event.prices
+                        }
+                    };
+                    await chaincode.addContractListener(listener);
+                }
             }
-        } catch(err) {
+        } catch (err) {
+            console.log(err.toString())
             res.status(400).send({ error: err.toString() });
         }
     }
-    else 
+    else
         res.status(400).send({ error: "You must provide a file, its category and prices." })
 });
 
 /* POST announcement */
 router.post('/UpdatePrices', upload.none(), async function (req, res) {
     let announcementId = req.body.announcementId
-    let updates = req.body.updates
+    let updates = JSON.stringify(req.body.updates)
 
     try {
-        if (announcementId){
+        if (announcementId) {
             result = await chaincode.submitTransaction('AnnouncementContract:UpdateQueryPrices', announcementId, updates)
             res.send({ result: JSON.parse(result) });
         }
