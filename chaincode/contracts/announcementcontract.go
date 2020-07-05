@@ -6,11 +6,11 @@ import (
 	"dataMarket/utils"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"strconv"
-	"time"
 )
 
 type AnnouncementContract struct {
@@ -129,7 +129,7 @@ func (_ *AnnouncementContract) GetAnnouncementsByCategoryLowerThan(ctx context.T
 
 	result := []*dataStructs.Announcement{}
 	for i := range announcements {
-		if hasValidValues(announcements[i], value){
+		if hasValidValues(announcements[i], value) {
 			result = append(result, announcements[i])
 		}
 	}
@@ -157,7 +157,7 @@ func (_ *AnnouncementContract) GetAnnouncementsLowerThan(ctx context.Transaction
 }
 
 // Update an Announcement with new prices
-func (_ *AnnouncementContract) UpdateQueryPrices(ctx context.TransactionContextInterface, announcementId string, updates [][]string) (map[string]float32, error) {
+func (_ *AnnouncementContract) UpdateQueryPrices(ctx context.TransactionContextInterface, announcementId string, updates map[string]float32) (*dataStructs.Announcement, error) {
 
 	// to change something has to have an identification
 	identification := ctx.GetIdentification()
@@ -178,21 +178,12 @@ func (_ *AnnouncementContract) UpdateQueryPrices(ctx context.TransactionContextI
 
 	// update prices
 	lengthPQ := len(announcement.PossibleQueries)
-	for _, pair := range updates {
-
-		if len(pair) != 2 {
-			return nil, errors.New("bad input")
-		}
-
-		price, err := strconv.ParseFloat(pair[1], 32)
-		if err != nil {
-			return nil, errors.New("bad input, price isn't float:  " + err.Error())
-		}
+	for key, value := range updates {
 
 		has := false
-		for i := 0 ; i < lengthPQ; i++ {
-			if pair[0] == announcement.PossibleQueries[i] {
-				announcement.QueryPrices[i] = float32(price)
+		for i := 0; i < lengthPQ; i++ {
+			if key == announcement.PossibleQueries[i] {
+				announcement.QueryPrices[i] = value
 				has = true
 				break
 			}
@@ -225,14 +216,7 @@ func (_ *AnnouncementContract) UpdateQueryPrices(ctx context.TransactionContextI
 		return nil, errors.New("event can't be emitted")
 	}
 
-	//build result
-	var result map[string]float32
-	result = make(map[string]float32)
-	for i := 0 ; i < lengthPQ ; i++ {
-		result[announcement.PossibleQueries[i]] = announcement.QueryPrices[i]
-	}
-
-	return result, nil
+	return announcement, nil
 }
 
 // Auxiliary function for repeating code
@@ -250,7 +234,9 @@ func getAnnouncements(resultsIterator shim.StateQueryIteratorInterface) ([]*data
 // Converter of an []interface{} to []Announcement
 func convertToAnnouncement(values []interface{}) (announcements []*dataStructs.Announcement) {
 	announcements = make([]*dataStructs.Announcement, len(values))
-	for i := range values {announcements[i] = values[i].(*dataStructs.Announcement)}
+	for i := range values {
+		announcements[i] = values[i].(*dataStructs.Announcement)
+	}
 	return announcements
 }
 
@@ -264,4 +250,3 @@ func hasValidValues(announcement *dataStructs.Announcement, value float32) bool 
 
 	return false
 }
-

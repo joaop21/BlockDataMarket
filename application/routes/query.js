@@ -72,7 +72,8 @@ router.post('/', upload.none(), async function (req, res) {
                     const owner = await chaincode.submitTransaction('IdentificationContract:GetIdentification', announcementJson.ownerId);
                     const ownerJson = JSON.parse(owner);
                     const plaintext = crypto.decrypt(cryptogram, ownerJson.publicKey);
-                    res.send({ result: plaintext });
+                    event.response = plaintext
+                    res.send({ result: event });
                 }
             };
             await chaincode.addContractListener(listener);

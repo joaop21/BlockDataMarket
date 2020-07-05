@@ -2,28 +2,39 @@ const fs = require('fs');
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
 const database = require('./database');
+const { Console } = require('console');
+const { parse } = require('path');
+
+function parseDocData(data) {
+    try {
+        parser.parseString(data.toString(), function (err, result) {
+            doc = result.doc
+            title = doc.title[0]
+            url = doc.url[0]
+            abstract = doc.abstract[0];
+            sections = doc.links[0].sublink.map((link) => link.anchor[0]);
+        });
+
+        return {
+            title: title,
+            url: url,
+            abstract: abstract,
+            sections: sections
+        };
+    }
+    catch{
+        return -1;
+    }
+}
 
 async function loadDocData(dataId) {
     const data = await database.getContent(dataId);
 
-    parser.parseString(data.toString(), function (err, result) {
-        doc = result.doc
-        title = doc.title[0]
-        url = doc.url[0]
-        abstract = doc.abstract[0];
-        sections = doc.links[0].sublink.map((link) => link.anchor[0]);
-    });
-
-    return {
-        title: title,
-        url: url,
-        abstract: abstract,
-        sections: sections
-    }
+    return parseDocData(data)
 }
 
-async function getQueryPrices(dataId, queries) {
-    var doc = await loadDocData(dataId)
+async function getQueryPrices(fileContent, queries) {
+    doc = parseDocData(fileContent)
 
     var prices = {
         titlePrice: doc.title.length,
@@ -70,5 +81,6 @@ async function getResponseContent(dataId, query, queryPrice, pricePaid) {
 
 module.exports = {
     getQueryPrices: getQueryPrices,
-    getResponseContent: getResponseContent
+    getResponseContent: getResponseContent,
+    parseDocData: parseDocData
 }
