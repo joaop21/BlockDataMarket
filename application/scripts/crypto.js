@@ -56,7 +56,6 @@ function main(){
     pk2 = generateKeys('2')
 
     c = encrypt("ola", pk2, '1')
-    console.log(decrypt(c, pk1, '2'))
 }
 
 
